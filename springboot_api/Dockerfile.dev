@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-21
+FROM public.ecr.aws/docker/library/maven:3.9-eclipse-temurin-21
 
 EXPOSE 9090
 
