@@ -20,10 +20,11 @@ public class HealthController {
     @Value("${backend.port:8080}")
     private String backendPort;
 
-    private String fastApiUrl = String.format("http://%s:%s/health", backendHost, backendPort);
-
     @GetMapping("/health")
     public ResponseEntity<String> health() {
+
+        String fastApiUrl = String.format("http://%s:%s/health", backendHost, backendPort);
+
         try {
             // Check FastAPI health
             String fastApiResponse = restTemplate.getForObject(fastApiUrl, String.class);
