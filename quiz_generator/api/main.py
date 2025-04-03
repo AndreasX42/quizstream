@@ -3,6 +3,9 @@ from fastapi.responses import JSONResponse
 from fastapi import status
 from backend.api.routers import quiz_router
 from backend.commons.db import Base, engine
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="QuizManager Documentation",
@@ -15,9 +18,10 @@ app = FastAPI(
 
 @app.get("/health", tags=["Health"])
 async def health_check():
+    logger.info("Health check passed")
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"message": "Health check passed", "status": 200},
+        content={"message": "Ok", "status": 200},
     )
 
 

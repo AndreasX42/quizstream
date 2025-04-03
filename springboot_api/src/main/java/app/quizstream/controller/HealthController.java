@@ -5,15 +5,34 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 public class HealthController {
 
     private static final Logger logger = LoggerFactory.getLogger(HealthController.class);
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${backend.host:localhost}")
+    private String backendHost;
+
+    @Value("${backend.port:8080}")
+    private String backendPort;
+
+    private String fastApiUrl = String.format("http://%s:%s/health", backendHost, backendPort);
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        logger.info("Health check passed");
-        return ResponseEntity.ok("Ok");
+        try {
+            // Check FastAPI health
+            String fastApiResponse = restTemplate.getForObject(fastApiUrl, String.class);
+
+            logger.info("Health check passed - FastAPI response: {}", fastApiResponse);
+            return ResponseEntity.ok("Ok");
+        } catch (Exception e) {
+            logger.error("FastAPI health check failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("FastAPI service unhealthy");
+        }
     }
 }
