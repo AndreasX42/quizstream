@@ -27,7 +27,6 @@ public class SecurityConfig {
     private UserService userService;
     private EnvConfigs envConfigs;
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -35,13 +34,14 @@ public class SecurityConfig {
         authFilter.setFilterProcessesUrl(envConfigs.AUTH_PATH_FRONTEND);
 
         http
-                .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
+                .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
+                        .configurationSource(corsConfigurationSource()))
                 .headers(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/swagger-ui/**", "/openapi/**", "/api-docs/**", "/v3/api-docs/**")
                         .permitAll()
-                        .requestMatchers("/quizzes/leaderboard")
+                        .requestMatchers("/quizzes/leaderboard", "/health")
                         .permitAll()
                         .requestMatchers("/api/v1/actuator/**")
                         .hasRole("ADMIN")
