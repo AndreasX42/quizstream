@@ -18,10 +18,9 @@ app = FastAPI(
 
 @app.get("/health", tags=["Health"])
 async def health_check():
-    logger.info("Health check passed")
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"message": "Ok", "status": 200},
+        content={"message": "Ok"},
     )
 
 

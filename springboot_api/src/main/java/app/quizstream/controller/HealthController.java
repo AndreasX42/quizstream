@@ -22,12 +22,16 @@ public class HealthController {
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-
         String fastApiUrl = String.format("http://%s:%s/health", backendHost, backendPort);
 
         try {
             // Check FastAPI health
             String fastApiResponse = restTemplate.getForObject(fastApiUrl, String.class);
+
+            // FastAPI returns {"message": "Ok"}
+            if (fastApiResponse == null || !fastApiResponse.contains("\"message\":\"Ok\"")) {
+                throw new RuntimeException("FastAPI health check failed");
+            }
 
             logger.info("Health check passed - FastAPI response: {}", fastApiResponse);
             return ResponseEntity.ok("Ok");
