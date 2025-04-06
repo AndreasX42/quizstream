@@ -1,4 +1,4 @@
-FROM postgres:16.4-alpine
+FROM public.ecr.aws/docker/library/postgres:16.4-alpine
 
 RUN apk add --no-cache \
     postgresql-dev \
