@@ -14,7 +14,7 @@ services:
       - JWT_SECRET="bQeThWmZq4t7w!z$C&F)J@NcRfUjXn2r5u8x/A?D*G-KaPdSgVkYp3s6v9y$B&E)"
       - BACKEND_HOST=backend-test
       - BACKEND_PORT=8080
-      - DEFAULT_OPENAI_API_KEY=${DEFAULT_OPENAI_API_KEY}
+      - DEFAULT_OPENAI_API_KEY="default key"
     command: mvn test
     depends_on:
       - postgres-test
@@ -31,7 +31,8 @@ services:
       - POSTGRES_PORT=5432
       - POSTGRES_DRIVER=psycopg
       - EXECUTION_CONTEXT=test
-      - DEFAULT_OPENAI_API_KEY=sk-123
+      - DEFAULT_OPENAI_API_KEY=${DEFAULT_OPENAI_API_KEY}
+      - PROXY_URL=test
     depends_on:
       - postgres-test
     restart: always

@@ -35,7 +35,7 @@ public class SecurityConfig {
 
         http
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
-                        .configurationSource(corsConfigurationSource    ()))
+                        .configurationSource(corsConfigurationSource()))
                 .headers(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
@@ -43,8 +43,6 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/quizzes/leaderboard", "/health")
                         .permitAll()
-                        .requestMatchers("/api/v1/actuator/**")
-                        .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, envConfigs.REGISTER_PATH)
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, envConfigs.AUTH_PATH_API)

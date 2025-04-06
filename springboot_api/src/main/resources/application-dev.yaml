@@ -11,19 +11,3 @@ spring:
       enabled: true
     livereload:
       enabled: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-      base-path: /api/v1/actuator
-  endpoint:
-    health:
-      show-details: always
-    # env:
-    #   show-values: always
-    #   keys-to-sanitize:
-  info:
-    env:
-      enabled: true

@@ -27,6 +27,8 @@ from quiz_generator.api.models import QuizDifficulty, QuizLanguage
 from quiz_generator.tests.mock_youtube_loader import MOCK_TRANSCRIPT
 from quiz_generator.quiz_generation.utils import LANGUAGE_CODES, redact_api_key
 
+LLM_MODELS = {"OPENAI": "gpt-4o-mini"}
+
 logger = logging.getLogger(__name__)
 
 
@@ -141,7 +143,9 @@ async def afilter_most_relevant_questions(
     try:
 
         llm = ChatOpenAI(
-            temperature=0, model="gpt-4o-mini", api_key=api_keys["OPENAI_API_KEY"]
+            temperature=0,
+            model=LLM_MODELS["OPENAI"],
+            api_key=api_keys["OPENAI_API_KEY"],
         )
 
         grading_chain = RELEVANCY_FILTER_PROMPT | llm | StrOutputParser()
@@ -243,7 +247,9 @@ async def asummarize_video(video_metadata: dict[str, str], api_keys: dict[str, s
     try:
 
         llm = ChatOpenAI(
-            temperature=0, model="gpt-4o-mini", api_key=api_keys["OPENAI_API_KEY"]
+            temperature=0,
+            model=LLM_MODELS["OPENAI"],
+            api_key=api_keys["OPENAI_API_KEY"],
         )
 
         summarizing_chain = prompt | llm | StrOutputParser()
@@ -313,7 +319,7 @@ async def agenerate_quiz_from_transcript(
     try:
         llm = ChatOpenAI(
             temperature=0,
-            model="gpt-4o-mini",
+            model=LLM_MODELS["OPENAI"],
             api_key=api_keys["OPENAI_API_KEY"],
         )
 
@@ -347,6 +353,15 @@ async def agenerate_quiz_from_transcript(
             str(len(qa_pairs)),
             quiz_name,
             str(len(chunks)),
+        )
+
+    if len(qa_pairs) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error_external": f"GeneratorError: Try other video or settings.",
+                "error_internal": f"Found {len(chunks)} chunks, but generated {len(qa_pairs)} quiz questions with {LLM_MODELS['OPENAI']}. Length of chunks: {str.join(', ', [str(len(chunk.page_content)) for chunk in chunks])}",
+            },
         )
 
     return qa_pairs
