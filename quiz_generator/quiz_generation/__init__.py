@@ -25,7 +25,7 @@ def patched_list_transcripts(cls, video_id, proxies=None, cookies=None):
     # Use the default proxies if none are provided and PROXY_URL is set
     if proxies is None:
         proxies = default_proxies
-    logger.info(f"Using proxies in transcript list: {proxies}")
+        logger.info(f"Using proxies in transcript list: {proxies}")
     return original_list_transcripts(
         video_id=video_id, proxies=proxies, cookies=cookies
     )
