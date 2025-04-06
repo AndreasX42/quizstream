@@ -8,8 +8,8 @@ import os
 from pytubefix import YouTube as FixedYouTube
 
 default_proxies = {
-    "http": os.environ["PROXY_URL"],
-    "https": os.environ["PROXY_URL"],
+    "http": os.environ.get("PROXY_URL"),
+    "https": os.environ.get("PROXY_URL"),
 }
 
 # Monkey patch for youtube_transcript_api
