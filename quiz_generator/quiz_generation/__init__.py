@@ -7,27 +7,20 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import os
 from pytubefix import YouTube as FixedYouTube
 
+# Define proxy settings
 default_proxies = {
-    "http": os.environ.get("PROXY_URL"),
-    "https": os.environ.get("PROXY_URL"),
+    "http": os.getenv("PROXY_URL"),
+    "https": os.getenv("PROXY_URL"),
 }
-
-import logging
-
-logger = logging.getLogger(__name__)
-
-logger.info("Using proxies: %s", default_proxies)
 
 # Monkey patch for youtube_transcript_api
 original_list_transcripts = YouTubeTranscriptApi.list_transcripts
 
 
 def patched_list_transcripts(cls, video_id, proxies=None, cookies=None):
-    # Use the default proxies if none are provided
+    # Use the default proxies if none are provided and PROXY_URL is set
     if proxies is None:
         proxies = default_proxies
-    logger.info("Using proxies in transcript list: %s", proxies)
-
     return original_list_transcripts(
         video_id=video_id, proxies=proxies, cookies=cookies
     )
@@ -41,7 +34,6 @@ class YouTubeProxy(FixedYouTube):
     def __init__(self, *args, **kwargs):
         self.session = requests.Session()
         self.session.proxies.update(default_proxies)
-        logger.info("Using proxies in pytubefix: %s", self.session.proxies)
         super().__init__(*args, **kwargs)
 
 

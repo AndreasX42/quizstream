@@ -210,7 +210,7 @@ async def aget_video_transcript(youtube_url: str, language: QuizLanguage) -> Doc
         youtube_url=youtube_url,
         language=LANGUAGE_CODES,
         translation=language.name.lower(),
-        add_video_info=False,
+        add_video_info=True,
     )
 
     try:
