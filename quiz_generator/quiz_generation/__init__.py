@@ -37,9 +37,8 @@ YouTubeTranscriptApi.list_transcripts = classmethod(patched_list_transcripts)
 # Monkey patch for pytubefix
 class YouTubeProxy(FixedYouTube):
     def __init__(self, *args, **kwargs):
-        self.session = requests.Session()
-        self.session.proxies.update(default_proxies)
-        logger.info(f"Using proxies in pytubefix: {self.session.proxies}")
+        kwargs["proxies"] = default_proxies
+        print(f"Using proxies in pytubefix: {kwargs}")
         super().__init__(*args, **kwargs)
 
 
