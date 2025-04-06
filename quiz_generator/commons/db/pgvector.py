@@ -7,7 +7,7 @@ from langchain.docstore.document import Document
 
 from sqlalchemy import MetaData, Table, select, update
 
-from backend.commons.db import (
+from quiz_generator.commons.db import (
     SessionLocal,
     CONNECTION_STRING,
     TABLE_COLLECTION,

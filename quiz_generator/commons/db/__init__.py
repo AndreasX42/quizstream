@@ -2,13 +2,13 @@ TABLE_COLLECTION = "langchain_pg_collection"
 TABLE_DOCS = "langchain_pg_embedding"
 
 
-from backend.commons.db.database import (
+from quiz_generator.commons.db.database import (
     SessionLocal as SessionLocal,
     DATABASE_URL as CONNECTION_STRING,
     get_db,
 )
 
-from backend.commons.db.pgvector import (
+from quiz_generator.commons.db.pgvector import (
     create_collection,
     delete_collection,
     get_collection_metadata,
@@ -17,4 +17,4 @@ from backend.commons.db.pgvector import (
     list_collections,
 )
 
-from backend.commons.db.database import Base, engine
+from quiz_generator.commons.db.database import Base, engine

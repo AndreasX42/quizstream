@@ -17,15 +17,15 @@ from langchain_community.document_loaders import YoutubeLoader
 from openai import APIError as OpenAIError
 
 
-from backend.commons.prompts import get_qa_generation_prompt
-from backend.commons.prompts import (
+from quiz_generator.commons.prompts import get_qa_generation_prompt
+from quiz_generator.commons.prompts import (
     RELEVANCY_FILTER_PROMPT,
     get_qa_relevancy_filter_prompt_input_dict,
 )
-from backend.commons.db import create_collection
-from backend.api.models import QuizDifficulty, QuizLanguage
-from backend.tests.mock_youtube_loader import MOCK_TRANSCRIPT
-from backend.quiz_generation.utils import LANGUAGE_CODES, redact_api_key
+from quiz_generator.commons.db import create_collection
+from quiz_generator.api.models import QuizDifficulty, QuizLanguage
+from quiz_generator.tests.mock_youtube_loader import MOCK_TRANSCRIPT
+from quiz_generator.quiz_generation.utils import LANGUAGE_CODES, redact_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +64,9 @@ async def agenerate_quiz(
     # split transcript into chunks
     chunks, video_metadata = await achunk_transcript(transcript, difficulty)
 
+    # validate api keys
+    await validate_api_keys(api_keys)
+
     # create summary of video
     await asummarize_video(video_metadata, api_keys)
 
@@ -85,6 +88,18 @@ async def agenerate_quiz(
     collection_id, qa_ids = create_collection(quiz_name, qa_pairs, video_metadata)
 
     return collection_id, qa_ids
+
+
+async def validate_api_keys(api_keys: dict[str, str]):
+    """Validates the API keys
+
+    Args:
+        api_keys (dict[str, str]): API keys for LLM APIs
+    """
+
+    # TODO: Only OPENAI_API_KEY works for now
+    if "OPENAI_API_KEY" not in api_keys or "default key" in api_keys["OPENAI_API_KEY"]:
+        api_keys["OPENAI_API_KEY"] = os.environ.get("DEFAULT_OPENAI_API_KEY")
 
 
 async def afilter_most_relevant_questions(

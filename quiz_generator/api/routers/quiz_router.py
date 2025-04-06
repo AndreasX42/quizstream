@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.api.services import quiz_service
-from backend.api.schemas import QuizCreateRequestDto, QuizCreateResultDto
-from backend.commons.db import get_db
+from quiz_generator.api.services import quiz_service
+from quiz_generator.api.schemas import QuizCreateRequestDto, QuizCreateResultDto
+from quiz_generator.commons.db import get_db
 
 import logging
 

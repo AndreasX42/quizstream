@@ -52,6 +52,7 @@ public class User {
 
     @Nonnull
     @NotBlank(message = "password cannot be blank")
+    @Size(min = 6, message = "password must be at least 6 characters")
     @Column(nullable = false)
     private String password;
 

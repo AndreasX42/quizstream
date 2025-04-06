@@ -1,8 +1,8 @@
-from backend.api.schemas import QuizCreateRequestDto, QuizCreateResultDto
+from quiz_generator.api.schemas import QuizCreateRequestDto, QuizCreateResultDto
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from backend.quiz_generation import agenerate_quiz
-from backend.api.models import UserToQuiz, LangchainPGCollection
+from quiz_generator.quiz_generation import agenerate_quiz
+from quiz_generator.api.models import UserToQuiz, LangchainPGCollection
 from fastapi import HTTPException, status
 
 import datetime as dt

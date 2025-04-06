@@ -1,16 +1,19 @@
-langchain==0.2.12
-langchain_community==0.2.11 
-langchain-openai==0.1.21
-langchain-postgres==0.0.9
+langchain==0.3.23 
+langchain_community==0.3.18
+langchain-openai==0.3.12 
+langchain-postgres==0.0.13 
 
-youtube-transcript-api==0.6.2
+youtube-transcript-api==0.6.3
 pytube==15.0.0
-python-dotenv==1.0.1 
+python-dotenv==1.1.0 
 
-fastapi==0.112.0 
-pydantic==2.8.2 
-uvicorn==0.30.5
-watchfiles==0.23.0 
 
-SQLAlchemy==2.0.32 
-psycopg[binary]==3.2.1
+pytubefix==8.12.3 
+
+fastapi==0.115.12 
+pydantic==2.11.2 
+uvicorn==0.34.0 
+watchfiles==1.0.4 
+
+SQLAlchemy==2.0.40 
+psycopg[binary]==3.2.6 

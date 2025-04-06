@@ -61,6 +61,17 @@ public class UserEntityTest {
     }
 
     @Test
+    void testUserEntity_whenPasswordTooShort_shouldThrowException() {
+
+        user.setPassword("pwd");
+
+        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
+                .hasMessageContaining(
+                        "password must be at least 6 characters");
+
+    }
+
+    @Test
     void testUserEntity_whenEmailBlank_shouldNotSaveEntity() {
 
         user.setEmail("");

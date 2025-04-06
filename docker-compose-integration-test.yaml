@@ -1,0 +1,47 @@
+version: "3"
+services:
+  api-test:
+    build:
+      dockerfile: Dockerfile.prod
+      target: build
+      context: ./springboot_api
+    container_name: api-test
+    environment:
+      - SPRING_PROFILES_ACTIVE=integration-test
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=my_password
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-test:5432/quizstream_db_test
+      - JWT_SECRET="bQeThWmZq4t7w!z$C&F)J@NcRfUjXn2r5u8x/A?D*G-KaPdSgVkYp3s6v9y$B&E)"
+      - BACKEND_HOST=backend-test
+      - BACKEND_PORT=8080
+      - DEFAULT_OPENAI_API_KEY=${DEFAULT_OPENAI_API_KEY}
+    command: mvn test
+    depends_on:
+      - postgres-test
+  backend-test:
+    build:
+      dockerfile: Dockerfile.prod
+      context: ./quiz_generator
+    container_name: backend-test
+    environment:
+      - POSTGRES_DATABASE=quizstream_db_test
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - POSTGRES_DRIVER=psycopg
+      - EXECUTION_CONTEXT=test
+      - DEFAULT_OPENAI_API_KEY=sk-123
+    depends_on:
+      - postgres-test
+    restart: always
+  postgres-test:
+    build:
+      dockerfile: Dockerfile
+      context: ./postgres
+    container_name: postgres-test
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=quizstream_db_test
+    restart: always

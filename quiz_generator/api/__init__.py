@@ -1,1 +1,1 @@
-from backend.api.main import app
+from quiz_generator.api.main import app

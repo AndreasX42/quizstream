@@ -18,7 +18,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy.schema import Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
-from backend.commons.db import Base
+from quiz_generator.commons.db import Base
 
 from enum import Enum as PythonEnum
 

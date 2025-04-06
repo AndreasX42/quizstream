@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+
+  doc:
+    api-docs:
+      enabled: true
+
+server:
+  forward-headers-strategy: framework
+
+  info:
+    env:
+      enabled: true

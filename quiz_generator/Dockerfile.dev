@@ -8,10 +8,10 @@ COPY ./requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
-COPY ./ ./backend
+COPY ./ ./quiz_generator
 
-RUN chmod +x ./backend/wait-for-it.sh
+RUN chmod +x ./quiz_generator/wait-for-it.sh
 
 ENV PYTHONPATH "${PYTHONPATH}:/qs_backend"
 
-ENTRYPOINT ["/bin/bash", "-c", "./backend/wait-for-it.sh postgres:5432 --timeout=60 -- uvicorn backend.api:app --host 0.0.0.0 --port 8080 --reload --reload-dir ./backend --reload-include '*.*'"]
+ENTRYPOINT ["/bin/bash", "-c", "./quiz_generator/wait-for-it.sh postgres:5432 --timeout=60 -- uvicorn quiz_generator.api:app --host 0.0.0.0 --port 8080 --reload --reload-dir ./quiz_generator --reload-include '*.*'"]

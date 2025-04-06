@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi import status
-from backend.api.routers import quiz_router
-from backend.commons.db import Base, engine
+from quiz_generator.api.routers import quiz_router
+from quiz_generator.commons.db import Base, engine
 import logging
 
 logger = logging.getLogger(__name__)

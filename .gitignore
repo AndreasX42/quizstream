@@ -45,6 +45,7 @@ springboot_api/target
 /libpeerconnection.log
 testem.log
 /typings
+/postgres/data
 
 # System files
 .DS_Store

@@ -4,7 +4,7 @@ from uuid import uuid4, UUID
 from typing import Any
 import re
 
-from backend.api.models import QuizType, QuizDifficulty, QuizLanguage
+from quiz_generator.api.models import QuizType, QuizDifficulty, QuizLanguage
 
 
 class QuizCreateRequestDto(BaseModel):

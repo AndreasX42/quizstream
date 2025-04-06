@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  threads:
+    virtual:
+      enabled: ${SPRING_THREADS_VIRTUAL_ENABLED:true}
+
+server:
+  port: ${SERVER_PORT:9090}
+  address: 0.0.0.0
+
+info:
+  app:
+    name: QuizStream Spring Boot API
+    description: API for management of users and quizzes
