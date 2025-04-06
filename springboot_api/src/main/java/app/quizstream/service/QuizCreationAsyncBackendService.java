@@ -33,7 +33,8 @@ public class QuizCreationAsyncBackendService {
     private final QuizMapper quizMapper;
     private final ObjectMapper objectMapper;
 
-    public QuizCreationAsyncBackendService(RestTemplate restTemplate, EnvConfigs envConfigs, QuizRequestService quizJobService, QuizMapper quizMapper, ObjectMapper objectMapper) {
+    public QuizCreationAsyncBackendService(RestTemplate restTemplate, EnvConfigs envConfigs,
+            QuizRequestService quizJobService, QuizMapper quizMapper, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.envConfigs = envConfigs;
         this.quizJobService = quizJobService;
@@ -54,8 +55,7 @@ public class QuizCreationAsyncBackendService {
                 "type", quizCreateDto.type()
                         .toString(),
                 "difficulty", quizCreateDto.difficulty()
-                        .toString()
-        );
+                        .toString());
 
         // make the POST request to the backend in the background
         try {
@@ -65,8 +65,7 @@ public class QuizCreationAsyncBackendService {
                     envConfigs.backendCreateNewQuizEndpoint,
                     HttpMethod.POST,
                     request,
-                    String.class
-            );
+                    String.class);
 
             // TODO: should quizDto be returned somehow?
             QuizCreateResultDto quizDto = quizMapper.convertToQuizOutboundDto(response.getBody());
@@ -98,9 +97,12 @@ public class QuizCreationAsyncBackendService {
         } finally {
             logger.info("{} creating quiz '{}' for user with id '{}', '{}', '{}', '{}'.",
                     quizJob.getStatus()
-                            .name(), quizCreateDto.quizName(), quizCreateDto.userId(), quizCreateDto.language()
-                            .name(), quizCreateDto.difficulty()
-                            .name(), quizCreateDto.type()
+                            .name(),
+                    quizCreateDto.quizName(), quizCreateDto.userId(), quizCreateDto.language()
+                            .name(),
+                    quizCreateDto.difficulty()
+                            .name(),
+                    quizCreateDto.type()
                             .name());
         }
 
@@ -114,11 +116,13 @@ public class QuizCreationAsyncBackendService {
 
             Map<String, Object> errorDetails = objectMapper.readValue(responseBody, Map.class);
 
+            logger.error("Error details: {}", errorDetails);
+
             Map<String, Object> detail = (Map<String, Object>) errorDetails.get("detail");
             String errorInternal = (String) detail.get("error_internal");
             String errorExternal = (String) detail.get("error_external");
 
-            return Optional.of(new String[]{errorInternal, errorExternal});
+            return Optional.of(new String[] { errorInternal, errorExternal });
 
         } catch (Exception parseException) {
             parseException.printStackTrace();

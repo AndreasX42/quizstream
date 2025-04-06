@@ -28,6 +28,7 @@ async def create_quiz(
         return await quiz_service.create_quiz(quiz_data, session)
 
     except HTTPException as http_exc:
+        logger.error("HTTPException occurred: %s", str(http_exc))
         # re-raise HTTPException
         raise http_exc
 
