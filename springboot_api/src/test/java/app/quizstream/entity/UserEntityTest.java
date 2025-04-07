@@ -8,8 +8,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
-import java.time.LocalDateTime;
-
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -24,7 +23,10 @@ public class UserEntityTest {
 
     @BeforeEach
     void setUp() {
-        user = new User("myUserName", "myemail@mail.com", "myPassword");
+        user = new User();
+        user.setId(UUID.randomUUID());
+        user.setUsername("myUserName");
+        user.setEmail("myemail@mail.com");
     }
 
     @Test
@@ -32,7 +34,8 @@ public class UserEntityTest {
 
         user.setUsername("");
 
-        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
+        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user))
+                .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(
                         "username cannot be blank");
     }
@@ -42,7 +45,8 @@ public class UserEntityTest {
 
         user.setUsername("xy");
 
-        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
+        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user))
+                .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(
                         "username must be at least 3 characters");
     }
@@ -61,22 +65,12 @@ public class UserEntityTest {
     }
 
     @Test
-    void testUserEntity_whenPasswordTooShort_shouldThrowException() {
-
-        user.setPassword("pwd");
-
-        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining(
-                        "password must be at least 6 characters");
-
-    }
-
-    @Test
     void testUserEntity_whenEmailBlank_shouldNotSaveEntity() {
 
         user.setEmail("");
 
-        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
+        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user))
+                .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(
                         "email cannot be blank");
     }
@@ -86,7 +80,8 @@ public class UserEntityTest {
 
         user.setEmail("invalid-email");
 
-        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user)).isInstanceOf(ConstraintViolationException.class)
+        assertThatThrownBy(() -> testEntityManager.persistAndFlush(user))
+                .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(
                         "email must be a valid email address");
     }
@@ -104,17 +99,12 @@ public class UserEntityTest {
 
     }
 
-
     private void assertUserValidAndExpected(User expectedUser, User actualUser) {
         assertThat(actualUser).isNotNull();
-        assertThat(actualUser.getDateCreated()).isInstanceOf(LocalDateTime.class);
         assertThat(actualUser.getQuizzes()).isNull();
 
         assertThat(actualUser.getUsername()).isEqualTo(expectedUser.getUsername());
         assertThat(actualUser.getEmail()).isEqualTo(expectedUser.getEmail());
-        assertThat(actualUser.getPassword()).isEqualTo(expectedUser.getPassword());
-        assertThat(actualUser.getRole()).isEqualTo(expectedUser.getRole());
-        assertThat(actualUser.getIsActive()).isEqualTo(expectedUser.getIsActive());
     }
 
 }

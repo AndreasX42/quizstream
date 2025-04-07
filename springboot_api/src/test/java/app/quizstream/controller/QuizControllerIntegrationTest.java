@@ -1,7 +1,5 @@
 package app.quizstream.controller;
 
-import app.quizstream.dto.auth.LoginRequestDto;
-import app.quizstream.dto.auth.LoginResponseDto;
 import app.quizstream.dto.quiz.*;
 import app.quizstream.entity.User;
 import app.quizstream.entity.UserQuiz;
@@ -10,9 +8,7 @@ import app.quizstream.entity.request.QuizRequest;
 import app.quizstream.repository.*;
 import app.quizstream.security.config.EnvConfigs;
 import app.quizstream.service.QuizRequestService;
-import app.quizstream.service.QuizService;
 import app.quizstream.service.UserQuizService;
-import app.quizstream.util.Util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.escoffier.loom.loomunit.LoomUnitExtension;
@@ -26,7 +22,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -39,10 +34,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import app.quizstream.dto.user.UserRegisterDto;
+import app.quizstream.dto.user.UserOutboundDto;
 
 @Commit
 @SpringBootTest
@@ -52,44 +50,39 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(LoomUnitExtension.class)
 @ShouldNotPin
+@ActiveProfiles("integration-test")
 public class QuizControllerIntegrationTest {
 
         @Value("${default.openai.api.key}")
         private String apiKeyTest;
 
-        private final UserRepository userRepository;
         private final UserQuizRepository userQuizRepository;
         private final LangchainPGCollectionRepository langchainPGCollectionRepository;
         private final LangchainPGEmbeddingRepository langchainPGEmbeddingRepository;
         private final QuizRequestService quizRequestService;
         private final UserQuizService userQuizService;
-        private final BCryptPasswordEncoder bCryptPasswordEncoder;
         private final EnvConfigs envConfigs;
         private final ObjectMapper objectMapper;
         private final MockMvc mockMvc;
 
         @Autowired
-        public QuizControllerIntegrationTest(QuizService quizService, UserRepository userRepository,
-                        UserQuizRepository userQuizRepository, QuizRequestRepository quizRequestRepository,
+        public QuizControllerIntegrationTest(UserQuizRepository userQuizRepository,
                         LangchainPGCollectionRepository langchainPGCollectionRepository,
                         LangchainPGEmbeddingRepository langchainPGEmbeddingRepository,
                         QuizRequestService quizRequestService, UserQuizService userQuizService,
-                        BCryptPasswordEncoder bCryptPasswordEncoder, EnvConfigs envConfigs, ObjectMapper objectMapper,
+                        EnvConfigs envConfigs, ObjectMapper objectMapper,
                         MockMvc mockMvc) {
-                this.userRepository = userRepository;
                 this.userQuizRepository = userQuizRepository;
                 this.langchainPGCollectionRepository = langchainPGCollectionRepository;
                 this.langchainPGEmbeddingRepository = langchainPGEmbeddingRepository;
                 this.quizRequestService = quizRequestService;
                 this.userQuizService = userQuizService;
-                this.bCryptPasswordEncoder = bCryptPasswordEncoder;
                 this.envConfigs = envConfigs;
                 this.objectMapper = objectMapper;
                 this.mockMvc = mockMvc;
         }
 
         private User testUser;
-        private String testUserJWT;
         private UUID createdQuizId;
         private QuizOutboundDto quizOutboundData;
         private QuizCreateRequestDto quizCreateRequestDto;
@@ -104,16 +97,12 @@ public class QuizControllerIntegrationTest {
         }
 
         private void setUpUserAccount() {
+                UUID userId = UUID.randomUUID();
                 String userName = "John_Doe_2";
-                String userPassword = userName + "_password";
                 this.testUser = new User();
+                this.testUser.setId(userId);
                 this.testUser.setUsername(userName);
                 this.testUser.setEmail(userName + "@mail.com");
-                this.testUser.setPassword(bCryptPasswordEncoder.encode(userPassword));
-                this.testUser.setRole(User.Role.USER);
-
-                this.testUser = userRepository.save(testUser);
-                this.testUser.setPassword(userPassword);
 
                 this.quizCreateRequestDto = new QuizCreateRequestDto(testUser.getId(), "my first quiz",
                                 "https://www.youtube.com/watch?v=IFx8eABfivg",
@@ -125,39 +114,30 @@ public class QuizControllerIntegrationTest {
 
         @Test
         @Order(1)
-        public void testRegisterUser_whenValidUserDetailsProvided_shouldLoginSuccessfullyAndReceiveJWT()
+        public void testRegisterUser_whenValidUserDetailsProvided_shouldRegisterUserSuccessfully()
                         throws Exception {
 
-                LoginRequestDto loginRequestDto = new LoginRequestDto(testUser.getUsername(),
-                                this.testUser.getPassword());
-                String loginRequestDtoJson = objectMapper.writeValueAsString(loginRequestDto);
+                UserRegisterDto registerRequestDto = new UserRegisterDto(testUser.getId(), testUser.getUsername(),
+                                testUser.getEmail());
+                String registerRequestDtoJson = objectMapper.writeValueAsString(registerRequestDto);
 
                 MockHttpServletResponse response = mockMvc
-                                .perform(MockMvcRequestBuilders.post(envConfigs.AUTH_PATH_FRONTEND)
+                                .perform(MockMvcRequestBuilders.post(envConfigs.REGISTER_PATH)
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .content(loginRequestDtoJson))
-                                .andExpect(status().isOk())
+                                                .content(registerRequestDtoJson))
+                                .andExpect(status().isCreated())
                                 .andReturn()
                                 .getResponse();
 
-                // check jwt in header
-                Util.assertThatIsValidJwtToken(response, testUser.getUsername(), testUser.getRole()
-                                .name(),
-                                envConfigs.BEARER_PREFIX, envConfigs.getJwtSecret(), envConfigs.TOKEN_EXPIRATION);
-
                 // check login response dto
-                LoginResponseDto loginResponseDto = objectMapper.readValue(response.getContentAsString(),
-                                LoginResponseDto.class);
+                UserOutboundDto userOutboundDto = objectMapper.readValue(response.getContentAsString(),
+                                UserOutboundDto.class);
 
-                assertThat(loginResponseDto).isNotNull();
-                assertThat(loginResponseDto.userId()).isEqualTo(testUser.getId());
-                assertThat(loginResponseDto.userName()).isEqualTo(testUser.getUsername());
-                assertThat(loginResponseDto.email()).isEqualTo(testUser.getEmail());
-                assertThat(loginResponseDto.role()).isEqualTo(testUser.getRole()
-                                .name());
+                assertThat(userOutboundDto).isNotNull();
+                assertThat(userOutboundDto.id()).isEqualTo(testUser.getId());
+                assertThat(userOutboundDto.username()).isEqualTo(testUser.getUsername());
+                assertThat(userOutboundDto.email()).isEqualTo(testUser.getEmail());
 
-                // store jwt token for later use
-                this.testUserJWT = response.getHeader("Authorization");
         }
 
         @Test
@@ -167,7 +147,6 @@ public class QuizControllerIntegrationTest {
                 String quizCreateRequestDtoJson = objectMapper.writeValueAsString(quizCreateRequestDto);
 
                 String response = mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
-                                .header("Authorization", testUserJWT)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateRequestDtoJson))
                                 .andExpect(status().isCreated())
@@ -245,7 +224,6 @@ public class QuizControllerIntegrationTest {
                                 .perform(MockMvcRequestBuilders
                                                 .get("/quizzes/{quizId}/users/{userId}", createdQuizId,
                                                                 testUser.getId())
-                                                .header("Authorization", testUserJWT)
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andReturn()
@@ -299,7 +277,6 @@ public class QuizControllerIntegrationTest {
                 String quizCreateDtoJson = objectMapper.writeValueAsString(quizCreateDto);
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
-                                .header("Authorization", testUserJWT)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateDtoJson))
                                 .andExpect(status().isCreated());
@@ -336,7 +313,6 @@ public class QuizControllerIntegrationTest {
                 String quizCreateDtoJson = objectMapper.writeValueAsString(newQuizCreateDto);
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
-                                .header("Authorization", testUserJWT)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateDtoJson))
                                 .andExpect(status().isCreated());
@@ -367,7 +343,6 @@ public class QuizControllerIntegrationTest {
                 String quizUpdateDtoJson = objectMapper.writeValueAsString(quizUpdateDto);
 
                 String response = mockMvc.perform(MockMvcRequestBuilders.put("/quizzes/update")
-                                .header("Authorization", testUserJWT)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizUpdateDtoJson))
                                 .andExpect(status().isOk())
@@ -393,7 +368,6 @@ public class QuizControllerIntegrationTest {
                                 .perform(MockMvcRequestBuilders
                                                 .get("/quizzes/{quizId}/users/{userId}/details",
                                                                 quizOutboundData.quizId(), testUser.getId())
-                                                .header("Authorization", testUserJWT)
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andReturn()
@@ -421,8 +395,8 @@ public class QuizControllerIntegrationTest {
 
                 // delete quiz
                 mockMvc.perform(MockMvcRequestBuilders
-                                .delete("/quizzes/{quizId}/users/{userId}", quizOutboundData.quizId(), testUser.getId())
-                                .header("Authorization", testUserJWT))
+                                .delete("/quizzes/{quizId}/users/{userId}", quizOutboundData.quizId(),
+                                                testUser.getId()))
                                 .andExpect(status().isNoContent());
 
                 // check that all rows in corresponding tables have been deleted
@@ -446,7 +420,6 @@ public class QuizControllerIntegrationTest {
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
                                                 .get("/quizzes/requests/users/{userId}", testUser.getId())
-                                                .header("Authorization", testUserJWT)
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")
@@ -472,7 +445,6 @@ public class QuizControllerIntegrationTest {
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
                                                 .get("/quizzes/requests/users/{userId}", testUser.getId())
-                                                .header("Authorization", testUserJWT)
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")
@@ -502,7 +474,6 @@ public class QuizControllerIntegrationTest {
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
                                                 .get("/quizzes/requests/users/{userId}", testUser.getId())
-                                                .header("Authorization", testUserJWT)
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")

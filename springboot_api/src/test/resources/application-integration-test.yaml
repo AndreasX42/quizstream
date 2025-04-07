@@ -2,3 +2,30 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      jdbc:
+        time_zone: America/Santiago
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          enabled: false
+          issuer-uri: http://localhost:9999/test-issuer
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quizstream_db_test
+    username: admin
+    password: my_password
+
+server:
+  servlet:
+    context-path: /v1
+  port: 9090
+
+app:
+  host: temp
+
+backend:
+  host: temp
+  port: temp

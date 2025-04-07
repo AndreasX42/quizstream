@@ -11,19 +11,14 @@ import lombok.AllArgsConstructor;
 
 import java.util.UUID;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import app.quizstream.dto.auth.LoginRequestDto;
-import app.quizstream.dto.auth.LoginResponseDto;
 import app.quizstream.dto.user.UserOutboundDto;
 import app.quizstream.dto.user.UserRegisterDto;
-import app.quizstream.dto.user.UserUpdateRequestDto;
-import app.quizstream.dto.user.UserUpdateResponseDto;
 import app.quizstream.exception.ErrorResponse;
 import app.quizstream.service.UserService;
 import app.quizstream.util.mapper.UserMapper;
@@ -37,31 +32,12 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
 
-    @Operation(summary = "Authenticates user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "404", description = "Authentication failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "200", description = "Authentication succeeded  ", content = @Content(schema = @Schema(implementation = LoginRequestDto.class))), })
-    @PostMapping(value = "/authenticate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LoginResponseDto> authenticateUser(@RequestBody LoginRequestDto userCredentials) {
-
-        // authenticate user and generate jwt
-        LoginResponseDto loginResponseDto = userService.authenticateUser(userCredentials);
-        String token = userService.getJwtToken(loginResponseDto);
-
-        // create headers and add the Authorization header
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + token);
-
-        // return the response with the login data and the header
-        return new ResponseEntity<>(loginResponseDto, headers, HttpStatus.OK);
-    }
-
     @Operation(summary = "Returns a user based on id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))), })
     @GetMapping(value = "id/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#id == principal.id or hasAuthority('ADMIN')")
+    @PreAuthorize("#id == principal.username or hasAuthority('ADMIN')")
     public ResponseEntity<UserOutboundDto> getUserById(@PathVariable UUID id) {
 
         UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getById(id));
@@ -91,25 +67,12 @@ public class UserController {
         return new ResponseEntity<>(userRegisteredDto, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Updates a user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful update of user", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))),
-            @ApiResponse(responseCode = "400", description = "Unsuccessful submission", content = @Content(schema = @Schema(implementation = ErrorResponse.class))) })
-    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#id == principal.id or hasAuthority('ADMIN')")
-    public ResponseEntity<UserUpdateResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto userDto,
-            @PathVariable UUID id) {
-
-        UserUpdateResponseDto userUpdatedDto = userService.update(id, userDto);
-        return new ResponseEntity<>(userUpdatedDto, HttpStatus.OK);
-    }
-
     @Operation(summary = "Deletes user with given id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Successful deletion of user", content = @Content(schema = @Schema(implementation = HttpStatus.class))),
             @ApiResponse(responseCode = "400", description = "Bad request: unsuccessful submission", content = @Content(schema = @Schema(implementation = ErrorResponse.class))) })
     @DeleteMapping(value = "/{id}")
-    @PreAuthorize("#id == principal.id or hasAuthority('ADMIN')")
+    @PreAuthorize("#id == principal.username or hasAuthority('ADMIN')")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable UUID id) {
 
         userService.delete(id);

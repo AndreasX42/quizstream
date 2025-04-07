@@ -13,31 +13,32 @@ import java.io.IOException;
 
 public class ExceptionHandlerFilter extends OncePerRequestFilter {
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                        FilterChain filterChain)
+                        throws ServletException, IOException {
 
-        try {
-            filterChain.doFilter(request, response);
-        } catch (EntityNotFoundException e) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter()
-                    .write("Incorrect username");
-            response.getWriter()
-                    .flush();
-        } catch (JWTVerificationException e) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter()
-                    .write("JWT invalid");
-            response.getWriter()
-                    .flush();
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter()
-                    .write("Bad request");
-            response.getWriter()
-                    .flush();
+                try {
+                        filterChain.doFilter(request, response);
+                } catch (EntityNotFoundException e) {
+                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        response.getWriter()
+                                        .write("Incorrect username");
+                        response.getWriter()
+                                        .flush();
+                } catch (JWTVerificationException e) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.getWriter()
+                                        .write("JWT invalid");
+                        response.getWriter()
+                                        .flush();
+                } catch (RuntimeException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        response.getWriter()
+                                        .write("Bad request");
+                        response.getWriter()
+                                        .flush();
+                }
         }
-    }
 
 }

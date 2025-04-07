@@ -5,10 +5,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time-zone: America/Santiago
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
   threads:
     virtual:
-      enabled: ${SPRING_THREADS_VIRTUAL_ENABLED:true}
+      enabled: ${SPRING_VIRTUAL_THREADS_ENABLED:true}
 
 server:
   port: ${SERVER_PORT:9090}

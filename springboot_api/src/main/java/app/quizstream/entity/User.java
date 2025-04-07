@@ -11,8 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,18 +23,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class User {
 
-    public enum Role {
-        USER, ADMIN
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.dateCreated = LocalDateTime.now();
-    }
-
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
+    @NotNull(message = "id cannot be null")
     private UUID id;
 
     @Nonnull
@@ -49,22 +39,6 @@ public class User {
     @Email(message = "email must be a valid email address")
     @Column(nullable = false, unique = true)
     private String email;
-
-    @Nonnull
-    @NotBlank(message = "password cannot be blank")
-    @Size(min = 6, message = "password must be at least 6 characters")
-    @Column(nullable = false)
-    private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, updatable = false)
-    private Role role = Role.USER;
-
-    @Column(name = "date_created", nullable = false, updatable = false)
-    private LocalDateTime dateCreated;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

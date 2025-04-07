@@ -12,9 +12,9 @@ public class CustomUserDetails extends User {
     private final UUID id;
     private final String email;
 
-    public CustomUserDetails(UUID id, String username, String password, String email,
+    public CustomUserDetails(UUID id, String username, String email,
             Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
+        super(username, "", authorities);
         this.id = id;
         this.email = email;
     }

@@ -9,15 +9,16 @@ import app.quizstream.entity.User;
 @Component
 public class UserMapper {
 
-
     public UserOutboundDto mapFromEntityOutbound(User user) {
-        return new UserOutboundDto(user.getId(), user.getUsername(), user.getEmail(), user.getRole()
-                .name());
+        return new UserOutboundDto(user.getId(), user.getUsername(), user.getEmail());
     }
 
-
     public User mapToEntity(UserRegisterDto userDto) {
-        return new User(userDto.username(), userDto.email(), userDto.password());
+        User user = new User();
+        user.setId(userDto.id());
+        user.setUsername(userDto.username());
+        user.setEmail(userDto.email());
+        return user;
     }
 
 }

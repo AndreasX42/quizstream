@@ -90,11 +90,7 @@ class User(Base):
         index=True,
     )
     username = Column(String, index=False, unique=True, nullable=False)
-    password = Column(String, index=False, unique=False, nullable=False)
     email = Column(String, index=False, unique=True, nullable=False)
-    date_created = Column(DateTime, default=dt.datetime.now(dt.UTC))
-    is_active = Column(Boolean, default=True)
-    role = Column(Enum(Role), default=Role.USER)
 
 
 class UserToQuiz(Base):

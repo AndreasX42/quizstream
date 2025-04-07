@@ -1,37 +1,31 @@
 package app.quizstream.security.config;
 
-import app.quizstream.security.filter.AuthenticationFilter;
-import app.quizstream.security.filter.ExceptionHandlerFilter;
-import app.quizstream.security.filter.JWTAuthorizationFilter;
-import app.quizstream.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.Customizer;
+import app.quizstream.security.filter.CognitoHeaderFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 @AllArgsConstructor
 @EnableMethodSecurity
+@Profile("!integration-test")
 public class SecurityConfig {
 
-    private AuthenticationManager authenticationManager;
-    private UserService userService;
     private EnvConfigs envConfigs;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        AuthenticationFilter authFilter = new AuthenticationFilter(authenticationManager, envConfigs);
-        authFilter.setFilterProcessesUrl(envConfigs.AUTH_PATH_FRONTEND);
 
         http
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
@@ -39,21 +33,20 @@ public class SecurityConfig {
                 .headers(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/swagger-ui/**", "/openapi/**", "/api-docs/**", "/v3/api-docs/**")
+                        .requestMatchers("/swagger-ui/**")
                         .permitAll()
                         .requestMatchers("/quizzes/leaderboard", "/health")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, envConfigs.REGISTER_PATH)
+                        .requestMatchers(HttpMethod.POST, "/users/register")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, envConfigs.AUTH_PATH_API)
+                        .requestMatchers(HttpMethod.DELETE, "/users/{id}")
                         .permitAll()
                         .anyRequest()
                         .authenticated())
-                .addFilterBefore(new ExceptionHandlerFilter(), AuthenticationFilter.class)
-                .addFilter(authFilter)
-                .addFilterAfter(new JWTAuthorizationFilter(userService, envConfigs), AuthenticationFilter.class)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults()));
+
+        http.addFilterBefore(new CognitoHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

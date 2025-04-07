@@ -5,18 +5,11 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
-
-    private final Environment environment;
-
-    public OpenApiConfig(Environment environment) {
-        this.environment = environment;
-    }
 
     @Bean
     OpenAPI openApi() {
@@ -27,8 +20,7 @@ public class OpenApiConfig {
                         .version("v0.1"))
                 .servers(List.of(
                         new Server().url("/api/v1")
-                                .description("Production server")
-                ));
+                                .description("Production server")));
     }
 
 }

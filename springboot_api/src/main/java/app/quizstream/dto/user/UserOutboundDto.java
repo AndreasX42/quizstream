@@ -9,9 +9,8 @@ import java.util.UUID;
 @Schema(description = "Dto for outbound operations.")
 public record UserOutboundDto(
 
-        @NotNull UUID id,
-        @NotNull String username,
-        @NotNull @Email String email,
-        @NotNull String role) {
+                @NotNull UUID id,
+                @NotNull String username,
+                @NotNull @Email String email) {
 
 }
