@@ -37,7 +37,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))), })
     @GetMapping(value = "id/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#id == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
+    @PreAuthorize("#id == principal.claims['sub'] or hasAuthority('ADMIN')")
     public ResponseEntity<UserOutboundDto> getUserById(@PathVariable UUID id) {
 
         UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getById(id));
@@ -49,7 +49,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))), })
     @GetMapping(value = "name/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userName == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
+    @PreAuthorize("#userName == principal.claims['sub'] or hasAuthority('ADMIN')")
     public ResponseEntity<UserOutboundDto> getUserByUserName(@PathVariable String userName) {
 
         UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getByUserName(userName));
@@ -72,7 +72,7 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "Successful deletion of user", content = @Content(schema = @Schema(implementation = HttpStatus.class))),
             @ApiResponse(responseCode = "400", description = "Bad request: unsuccessful submission", content = @Content(schema = @Schema(implementation = ErrorResponse.class))) })
     @DeleteMapping(value = "/{id}")
-    @PreAuthorize("#id == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
+    @PreAuthorize("#id == principal.claims['sub'] or hasAuthority('ADMIN')")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable UUID id) {
 
         userService.delete(id);
