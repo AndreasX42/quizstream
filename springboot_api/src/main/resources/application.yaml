@@ -22,3 +22,8 @@ server:
 springdoc:
   api-docs:
     enabled: true
+
+logging:
+  level:
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.jwt: DEBUG

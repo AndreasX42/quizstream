@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @RestController
 public class HealthController {
@@ -40,4 +43,15 @@ public class HealthController {
             return ResponseEntity.internalServerError().body("FastAPI service unhealthy");
         }
     }
+
+    @GetMapping("/debug-auth")
+    public ResponseEntity<Void> debugAuth(Authentication auth) {
+        System.out.println("🔐 Principal: " + auth.getPrincipal().getClass().getName());
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            Jwt jwt = jwtAuth.getToken();
+            jwt.getClaims().forEach((k, v) -> System.out.println(k + " = " + v));
+        }
+        return ResponseEntity.ok().build();
+    }
+
 }

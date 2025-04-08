@@ -40,7 +40,7 @@ public class QuizController {
 
     // GET quiz by quiz id
     @GetMapping(value = "{quizId}/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Returns a quiz based on provided user and quiz id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Quiz doesn't exist", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -55,7 +55,7 @@ public class QuizController {
 
     // GET all quizzes by user id
     @GetMapping(value = "/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Retrieves paged list users quizzes")
     @ApiResponse(responseCode = "200", description = "Successful retrieval of all quizzes of user", content = @Content(array = @ArraySchema(schema = @Schema(implementation = QuizOutboundDto.class))))
     public ResponseEntity<Page<QuizOutboundDto>> getAllUserQuizzes(@PathVariable UUID userId, Pageable pageable) {
@@ -67,7 +67,7 @@ public class QuizController {
 
     // CREATE quiz by userid
     @PostMapping(value = "/new", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#quizCreateDto.userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#quizCreateDto.userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Creates a quiz from provided data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Successfully started quiz creation", content = @Content(schema = @Schema(implementation = QuizRequestDto.class))),
@@ -82,7 +82,7 @@ public class QuizController {
 
     // UPDATE quiz
     @PutMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#quizUpdateDto.userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#quizUpdateDto.userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Updates a quiz by user id, quiz name and provided payload")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful update of quiz", content = @Content(schema = @Schema(implementation = QuizOutboundDto.class))),
@@ -97,7 +97,7 @@ public class QuizController {
 
     // DELETE quiz
     @DeleteMapping("{quizId}/users/{userId}")
-    @PreAuthorize("#userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Deletes quiz with given user and quiz id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Successful deletion of quiz", content = @Content(schema = @Schema(implementation = HttpStatus.class))),
@@ -112,7 +112,7 @@ public class QuizController {
 
     // GET quiz details by user and quiz id
     @GetMapping(value = "{quizId}/users/{userId}/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Returns the quiz details based on provided user and quiz id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Quiz details don't exist", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -128,7 +128,7 @@ public class QuizController {
 
     // GET returns list of quiz jobs of user
     @GetMapping(value = "/requests/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Returns paged list of quiz requests for given user id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Fetching quiz jobs failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -144,7 +144,7 @@ public class QuizController {
 
     // DELETE quiz job
     @DeleteMapping("/requests")
-    @PreAuthorize("#quizDeleteRequestDto.userId == principal.username or hasAuthority('ADMIN')")
+    @PreAuthorize("#quizDeleteRequestDto.userId == principal.claims['cognito:username'] or hasAuthority('ADMIN')")
     @Operation(summary = "Deletes quiz request with given user id and quiz name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Successful deletion of quiz job", content = @Content(schema = @Schema(implementation = HttpStatus.class))),
