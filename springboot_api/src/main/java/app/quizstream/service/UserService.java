@@ -34,6 +34,10 @@ public class UserService {
         return userOptional.orElseThrow(() -> new EntityNotFoundException(id.toString(), User.class));
     }
 
+    public Optional<User> getByIdOptional(UUID id) {
+        return userRepository.findById(id);
+    }
+
     public Page<UserOutboundDto> getAll(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(userMapper::mapFromEntityOutbound);
@@ -61,7 +65,7 @@ public class UserService {
     public void delete(UUID id) {
         if (userRepository.findById(id)
                 .isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), User.class);
+            return;
         }
 
         userRepository.deleteById(id);

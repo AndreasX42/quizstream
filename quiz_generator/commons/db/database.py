@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DRIVER = os.environ.get("POSTGRES_DRIVER")
+DRIVER = os.environ.get("POSTGRES_DRIVER", "psycopg")
 HOST = os.environ.get("POSTGRES_HOST")
 PORT = os.environ.get("POSTGRES_PORT")
 DB = os.environ.get("POSTGRES_DATABASE")

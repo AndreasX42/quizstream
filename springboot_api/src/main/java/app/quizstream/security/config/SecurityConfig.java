@@ -10,10 +10,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Profile;
-import app.quizstream.security.filter.TokenLoggingFilter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
@@ -39,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/swagger-ui/**")
                         .permitAll()
-                        .requestMatchers("/quizzes/leaderboard", "/health", "/debug-auth")
+                        .requestMatchers("/quizzes/leaderboard", "/health")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/register")
                         .permitAll()
@@ -48,7 +46,6 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
-        http.addFilterBefore(new TokenLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
         // http.addFilterBefore(new CognitoHeaderFilter(),
         // UsernamePasswordAuthenticationFilter.class);
 

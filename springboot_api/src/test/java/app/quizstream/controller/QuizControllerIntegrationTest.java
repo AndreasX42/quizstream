@@ -41,6 +41,7 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import app.quizstream.dto.user.UserRegisterDto;
 import app.quizstream.dto.user.UserOutboundDto;
+import app.quizstream.service.UserService;
 
 @Commit
 @SpringBootTest
@@ -61,6 +62,7 @@ public class QuizControllerIntegrationTest {
         private final LangchainPGEmbeddingRepository langchainPGEmbeddingRepository;
         private final QuizRequestService quizRequestService;
         private final UserQuizService userQuizService;
+        private final UserService userService;
         private final EnvConfigs envConfigs;
         private final ObjectMapper objectMapper;
         private final MockMvc mockMvc;
@@ -70,13 +72,14 @@ public class QuizControllerIntegrationTest {
                         LangchainPGCollectionRepository langchainPGCollectionRepository,
                         LangchainPGEmbeddingRepository langchainPGEmbeddingRepository,
                         QuizRequestService quizRequestService, UserQuizService userQuizService,
-                        EnvConfigs envConfigs, ObjectMapper objectMapper,
+                        UserService userService, EnvConfigs envConfigs, ObjectMapper objectMapper,
                         MockMvc mockMvc) {
                 this.userQuizRepository = userQuizRepository;
                 this.langchainPGCollectionRepository = langchainPGCollectionRepository;
                 this.langchainPGEmbeddingRepository = langchainPGEmbeddingRepository;
                 this.quizRequestService = quizRequestService;
                 this.userQuizService = userQuizService;
+                this.userService = userService;
                 this.envConfigs = envConfigs;
                 this.objectMapper = objectMapper;
                 this.mockMvc = mockMvc;
@@ -156,6 +159,9 @@ public class QuizControllerIntegrationTest {
 
                 // check response from endpoint
                 QuizRequestDto quizCreateResponseDto = objectMapper.readValue(response, QuizRequestDto.class);
+
+                // check that user was created
+                assertThat(userService.getByIdOptional(testUser.getId()).isPresent()).isTrue();
 
                 assertThat(quizCreateResponseDto).isNotNull();
                 assertThat(quizCreateResponseDto.userId()).isEqualTo(testUser.getId());
@@ -288,6 +294,9 @@ public class QuizControllerIntegrationTest {
                                 .until(() -> isPresentAndTerminated.test(quizRequestService.getRequestByQuizRequestId(
                                                 testUser.getId(), quizCreateRequestDto.quizName())));
 
+                // check that no new user was created
+                assertThat(userService.getAll().size()).isEqualTo(1);
+
                 // check that QuizRequest has failed
                 QuizRequest quizRequestRow = quizRequestService
                                 .getRequestByQuizRequestId(testUser.getId(), quizCreateRequestDto.quizName())
@@ -323,6 +332,9 @@ public class QuizControllerIntegrationTest {
                                 .pollInterval(2, TimeUnit.SECONDS)
                                 .until(() -> isPresentAndTerminated.test(quizRequestService.getRequestByQuizRequestId(
                                                 testUser.getId(), newQuizCreateDto.quizName())));
+
+                // check that no new user was created
+                assertThat(userService.getAll().size()).isEqualTo(1);
 
                 // check that QuizRequest has failed
                 QuizRequest quizRequestRow = quizRequestService

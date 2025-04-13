@@ -10,7 +10,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM 259417942296.dkr.ecr.us-east-1.amazonaws.com/quizstream/springboot:jre-21
+FROM 501619570482.dkr.ecr.us-east-1.amazonaws.com/quizstream/springboot:jre-21
 
 EXPOSE 9090
 

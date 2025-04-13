@@ -14,11 +14,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import app.quizstream.dto.user.UserRegisterDto;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class QuizService {
@@ -32,7 +33,9 @@ public class QuizService {
     private final QuizMapper quizMapper;
     private final QuizRequestMapper quizJobMapper;
 
-    public QuizService(UserService userService, UserQuizService userQuizService, QuizRequestService quizJobService, QuizCreationAsyncBackendService quizCreationAsyncBackendService, QuizMapper quizMapper, QuizRequestMapper quizJobMapper) {
+    public QuizService(UserService userService, UserQuizService userQuizService, QuizRequestService quizJobService,
+            QuizCreationAsyncBackendService quizCreationAsyncBackendService, QuizMapper quizMapper,
+            QuizRequestMapper quizJobMapper) {
         this.userService = userService;
         this.userQuizService = userQuizService;
         this.quizRequestService = quizJobService;
@@ -40,7 +43,6 @@ public class QuizService {
         this.quizMapper = quizMapper;
         this.quizJobMapper = quizJobMapper;
     }
-
 
     public Page<QuizOutboundDto> getAllUserQuizzes(UUID userId, Pageable pageable) {
         return userQuizService.getAllUserQuizzes(userId, pageable)
@@ -70,9 +72,20 @@ public class QuizService {
 
         logger.info("Creating quiz '{}' for user with id '{}', '{}', '{}', '{}'.",
                 quizCreateDto.quizName(), quizCreateDto.userId(), quizCreateDto.language()
-                        .name(), quizCreateDto.difficulty()
-                        .name(), quizCreateDto.type()
+                        .name(),
+                quizCreateDto.difficulty()
+                        .name(),
+                quizCreateDto.type()
                         .name());
+
+        // check if user exists, if not create user
+        Optional<User> userOptional = userService.getByIdOptional(quizCreateDto.userId());
+        if (userOptional.isEmpty()) {
+            String uuidString = quizCreateDto.userId().toString().substring(0, 10);
+            userService.create(new UserRegisterDto(quizCreateDto.userId(),
+                    "john-doe" + uuidString,
+                    "john-doe" + uuidString + "@gmail.com"));
+        }
 
         // create quizJob in table to keep track of status
         QuizRequest quizJob = this.quizRequestService.createQuizRequest(quizCreateDto);
@@ -166,7 +179,7 @@ public class QuizService {
                 comparator = Comparator.comparing(QuizLeaderboardEntry::numberCorrectAnswers);
             }
 
-            if (order.getDirection()==Sort.Direction.DESC) {
+            if (order.getDirection() == Sort.Direction.DESC) {
                 comparator = comparator.reversed();
             }
 
