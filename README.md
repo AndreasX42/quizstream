@@ -33,4 +33,5 @@ Directory Structure
 
 - `/springboot_api` Spring Boot API
 - `/quiz_generator` Python backend for quiz generation
+- `/infrastructure` AWS CDK project for creating services in CloudFormation
 - `/postgres` Database for development
