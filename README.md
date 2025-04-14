@@ -17,7 +17,7 @@
 
 The app is built on AWS with the following architecture:
 
-![aws_diagram](https://github.com/user-attachments/assets/fa0f9638-c629-418a-a36f-641f68e27745)
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/b8622da3-b621-4919-9ee4-7e78ab97a482" />
 
 
 ## 🌟 Features
