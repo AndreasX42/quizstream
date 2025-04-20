@@ -24,7 +24,7 @@ public class QuizRequestService {
     private final UserService userService;
 
     public QuizRequestService(QuizRequestRepository quizRequestRepository, QuizRequestMapper quizRequestMapper,
-                              UserService userService) {
+            UserService userService) {
         this.quizRequestRepository = quizRequestRepository;
         this.quizRequestMapper = quizRequestMapper;
         this.userService = userService;

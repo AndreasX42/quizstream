@@ -2,22 +2,35 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DRIVER = os.environ.get("POSTGRES_DRIVER", "psycopg")
-HOST = os.environ.get("POSTGRES_HOST")
-PORT = os.environ.get("POSTGRES_PORT")
-DB = os.environ.get("POSTGRES_DATABASE")
-USER = os.environ.get("POSTGRES_USER")
-PWD = os.environ.get("POSTGRES_PASSWORD")
+try:
+    from aws_lambda_powertools.utilities.parameters import SecretsProvider
 
-# database connection string
-DATABASE_URL = f"postgresql+{DRIVER}://{USER}:{PWD}@{HOST}/{DB}"
+    # Use the AWS Secrets Manager secrets provider
+    secrets_provider = SecretsProvider()
 
-# Creating the engine
-engine = create_engine(DATABASE_URL)
+    # Fetch the secret
+    secret_name: str = os.environ.get("DB_SECRET_NAME", "DbSecret")
 
-# Creating the session factory
+    secret = secrets_provider.get(secret_name, transform="json")
+    USER = secret["username"]
+    PWD = secret["password"]
+    HOST = secret["host"]
+    PORT = secret.get("port", 5432)
+    DB = secret["dbname"]
+    DRIVER = "psycopg"
+except Exception as e:
+    USER = os.environ.get("POSTGRES_USER")
+    PWD = os.environ.get("POSTGRES_PASSWORD")
+    HOST = os.environ.get("POSTGRES_HOST")
+    PORT = os.environ.get("POSTGRES_PORT")
+    DB = os.environ.get("POSTGRES_DATABASE")
+    DRIVER = os.environ.get("POSTGRES_DRIVER", "psycopg")
+
+DATABASE_URL = f"postgresql+{DRIVER}://{USER}:{PWD}@{HOST}:{PORT}/{DB}"
+
+# SQLAlchemy setup
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 

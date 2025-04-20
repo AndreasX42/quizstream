@@ -34,8 +34,9 @@ public class SecurityConfig {
                         .configurationSource(corsConfigurationSource()))
                 .headers(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/swagger-ui/**")
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers("/quizzes/leaderboard", "/health")
                         .permitAll()
@@ -45,9 +46,6 @@ public class SecurityConfig {
                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
-
-        // http.addFilterBefore(new CognitoHeaderFilter(),
-        // UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

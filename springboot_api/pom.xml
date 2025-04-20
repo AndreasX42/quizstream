@@ -27,6 +27,8 @@
         <hypersistence-utils.version>3.8.2</hypersistence-utils.version>
         <loom-unit.version>0.3.0</loom-unit.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <aws-sdk-sqs-version>2.31.22</aws-sdk-sqs-version>
+        <flyway.version>11.7.2</flyway.version>
     </properties>
 
     <dependencies>
@@ -104,6 +106,24 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
+        </dependency>
+
+        <!-- AWS SDK -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>${aws-sdk-sqs-version}</version>
+        </dependency>
+
+        <!-- Flyway -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
         <!-- Testing -->

@@ -8,12 +8,13 @@ import java.util.UUID;
 
 public record QuizCreateRequestDto(
 
-        @NotNull UUID userId,
-        @NotNull String quizName,
-        @NotNull String videoUrl,
-        @NotNull Map<String, String> apiKeys,
-        @NotNull UserQuiz.Language language,
-        @NotNull UserQuiz.Type type,
-        @NotNull UserQuiz.Difficulty difficulty) {
+		@NotNull UUID userId,
+		@NotNull String username,
+		@NotNull String quizName,
+		@NotNull String videoUrl,
+		@NotNull Map<String, String> apiKeys,
+		@NotNull UserQuiz.Language language,
+		@NotNull UserQuiz.Type type,
+		@NotNull UserQuiz.Difficulty difficulty) {
 
 }

@@ -21,4 +21,9 @@ public class QuizRequestId implements Serializable {
     @Column(name = "quiz_name")
     private String quizName;
 
+    @Override
+    public String toString() {
+        return userId.toString() + "_" + quizName;
+    }
+
 }

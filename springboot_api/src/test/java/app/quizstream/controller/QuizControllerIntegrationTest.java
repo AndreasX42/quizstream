@@ -107,7 +107,8 @@ public class QuizControllerIntegrationTest {
                 this.testUser.setUsername(userName);
                 this.testUser.setEmail(userName + "@mail.com");
 
-                this.quizCreateRequestDto = new QuizCreateRequestDto(testUser.getId(), "my first quiz",
+                this.quizCreateRequestDto = new QuizCreateRequestDto(testUser.getId(), userName,
+                                "my first quiz",
                                 "https://www.youtube.com/watch?v=IFx8eABfivg",
                                 Map.of("OPENAI_API_KEY", apiKeyTest),
                                 UserQuiz.Language.EN,
@@ -149,7 +150,8 @@ public class QuizControllerIntegrationTest {
 
                 String quizCreateRequestDtoJson = objectMapper.writeValueAsString(quizCreateRequestDto);
 
-                String response = mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
+                String response = mockMvc.perform(MockMvcRequestBuilders.post("/users/{userId}/quizzes",
+                                testUser.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateRequestDtoJson))
                                 .andExpect(status().isCreated())
@@ -198,7 +200,7 @@ public class QuizControllerIntegrationTest {
                 assertThat(quizRequestRow.getQuizId()).isNotNull();
                 assertThat(quizRequestRow.getDateCreated()).isCloseTo(quizCreateResponseDto.dateCreated(),
                                 within(1, ChronoUnit.SECONDS));
-                assertThat(quizRequestRow.getDateFinished()).isAfter(quizRequestRow.getDateCreated());
+                assertThat(quizRequestRow.getDateModified()).isAfter(quizRequestRow.getDateCreated());
                 assertThat(quizRequestRow.getMessageInternal()).isNull();
                 assertThat(quizRequestRow.getMessageExternal()).isNull();
 
@@ -209,7 +211,7 @@ public class QuizControllerIntegrationTest {
                 assertThat(userQuizRow.getId()
                                 .getQuizId()).isEqualTo(quizRequestRow.getQuizId());
                 assertThat(userQuizRow.getDateCreated()).isBetween(quizRequestRow.getDateCreated(),
-                                quizRequestRow.getDateFinished());
+                                quizRequestRow.getDateModified());
                 assertThat(userQuizRow.getNumQuestions()).isGreaterThan(0);
                 assertThat(userQuizRow.getNumTries()).isEqualTo(0);
                 assertThat(userQuizRow.getNumCorrect()).isEqualTo(0);
@@ -228,8 +230,8 @@ public class QuizControllerIntegrationTest {
 
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
-                                                .get("/quizzes/{quizId}/users/{userId}", createdQuizId,
-                                                                testUser.getId())
+                                                .get("/users/{userId}/quizzes/{quizId}", testUser.getId(),
+                                                                createdQuizId)
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andReturn()
@@ -272,6 +274,7 @@ public class QuizControllerIntegrationTest {
         public void testCreateQuiz_whenQuizNameAlreadyExists_shouldThrowException() throws Exception {
 
                 QuizCreateRequestDto quizCreateDto = new QuizCreateRequestDto(testUser.getId(),
+                                testUser.getUsername(),
                                 quizOutboundData.quizName(),
                                 "https://www.youtube.com/watch?v=" + quizOutboundData.metadata()
                                                 .videoUrl(),
@@ -282,7 +285,8 @@ public class QuizControllerIntegrationTest {
 
                 String quizCreateDtoJson = objectMapper.writeValueAsString(quizCreateDto);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
+                mockMvc.perform(MockMvcRequestBuilders.post("/users/{userId}/quizzes",
+                                testUser.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateDtoJson))
                                 .andExpect(status().isCreated());
@@ -311,7 +315,9 @@ public class QuizControllerIntegrationTest {
         @Order(5)
         public void testCreateQuiz_whenInvalidAPIKeyProvided_shouldThrowException() throws Exception {
 
-                QuizCreateRequestDto newQuizCreateDto = new QuizCreateRequestDto(testUser.getId(), "my second quiz",
+                QuizCreateRequestDto newQuizCreateDto = new QuizCreateRequestDto(testUser.getId(),
+                                testUser.getUsername(),
+                                "my second quiz",
                                 "https://www.youtube.com/watch?v=" + quizOutboundData.metadata()
                                                 .videoUrl(),
                                 Map.of("OPENAI_API_KEY", "invalid api key"),
@@ -321,7 +327,8 @@ public class QuizControllerIntegrationTest {
 
                 String quizCreateDtoJson = objectMapper.writeValueAsString(newQuizCreateDto);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/quizzes/new")
+                mockMvc.perform(MockMvcRequestBuilders.post("/users/{userId}/quizzes",
+                                testUser.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizCreateDtoJson))
                                 .andExpect(status().isCreated());
@@ -354,7 +361,8 @@ public class QuizControllerIntegrationTest {
                                 quizOutboundData.numQuestions() - 1, quizOutboundData.quizName() + "_updated");
                 String quizUpdateDtoJson = objectMapper.writeValueAsString(quizUpdateDto);
 
-                String response = mockMvc.perform(MockMvcRequestBuilders.put("/quizzes/update")
+                String response = mockMvc.perform(MockMvcRequestBuilders.put("/users/{userId}/quizzes",
+                                testUser.getId(), quizOutboundData.quizId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(quizUpdateDtoJson))
                                 .andExpect(status().isOk())
@@ -378,8 +386,8 @@ public class QuizControllerIntegrationTest {
 
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
-                                                .get("/quizzes/{quizId}/users/{userId}/details",
-                                                                quizOutboundData.quizId(), testUser.getId())
+                                                .get("/users/{userId}/quizzes/{quizId}/details", testUser.getId(),
+                                                                quizOutboundData.quizId())
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andReturn()
@@ -407,8 +415,8 @@ public class QuizControllerIntegrationTest {
 
                 // delete quiz
                 mockMvc.perform(MockMvcRequestBuilders
-                                .delete("/quizzes/{quizId}/users/{userId}", quizOutboundData.quizId(),
-                                                testUser.getId()))
+                                .delete("/users/{userId}/quizzes/{quizId}", testUser.getId(),
+                                                quizOutboundData.quizId()))
                                 .andExpect(status().isNoContent());
 
                 // check that all rows in corresponding tables have been deleted
@@ -431,7 +439,7 @@ public class QuizControllerIntegrationTest {
 
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
-                                                .get("/quizzes/requests/users/{userId}", testUser.getId())
+                                                .get("/users/{userId}/quizzes/requests", testUser.getId())
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")
@@ -456,7 +464,7 @@ public class QuizControllerIntegrationTest {
 
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
-                                                .get("/quizzes/requests/users/{userId}", testUser.getId())
+                                                .get("/users/{userId}/quizzes/requests", testUser.getId())
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")
@@ -485,7 +493,7 @@ public class QuizControllerIntegrationTest {
 
                 String response = mockMvc
                                 .perform(MockMvcRequestBuilders
-                                                .get("/quizzes/requests/users/{userId}", testUser.getId())
+                                                .get("/users/{userId}/quizzes/requests", testUser.getId())
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .param("page", "0")
                                                 .param("size", "10")

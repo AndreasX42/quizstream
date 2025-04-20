@@ -29,19 +29,19 @@ public class QuizService {
     private final UserService userService;
     private final UserQuizService userQuizService;
     private final QuizRequestService quizRequestService;
-    private final QuizCreationAsyncBackendService quizCreationAsyncBackendService;
     private final QuizMapper quizMapper;
     private final QuizRequestMapper quizJobMapper;
+    private final IQuizCreationInitiator quizCreationInitiator;
 
     public QuizService(UserService userService, UserQuizService userQuizService, QuizRequestService quizJobService,
-            QuizCreationAsyncBackendService quizCreationAsyncBackendService, QuizMapper quizMapper,
-            QuizRequestMapper quizJobMapper) {
+            QuizMapper quizMapper, QuizRequestMapper quizJobMapper,
+            IQuizCreationInitiator quizCreationInitiator) {
         this.userService = userService;
         this.userQuizService = userQuizService;
         this.quizRequestService = quizJobService;
-        this.quizCreationAsyncBackendService = quizCreationAsyncBackendService;
         this.quizMapper = quizMapper;
         this.quizJobMapper = quizJobMapper;
+        this.quizCreationInitiator = quizCreationInitiator;
     }
 
     public Page<QuizOutboundDto> getAllUserQuizzes(UUID userId, Pageable pageable) {
@@ -83,15 +83,15 @@ public class QuizService {
         if (userOptional.isEmpty()) {
             String uuidString = quizCreateDto.userId().toString().substring(0, 10);
             userService.create(new UserRegisterDto(quizCreateDto.userId(),
-                    "john-doe" + uuidString,
-                    "john-doe" + uuidString + "@gmail.com"));
+                    quizCreateDto.username(),
+                    "john-doe-" + uuidString + "@gmail.com"));
         }
 
         // create quizJob in table to keep track of status
         QuizRequest quizJob = this.quizRequestService.createQuizRequest(quizCreateDto);
 
-        // call backend asynchronously and update quizJob when done
-        quizCreationAsyncBackendService.createQuiz(quizCreateDto, quizJob);
+        // Use the injected initiator (implementation depends on active profile)
+        quizCreationInitiator.initiate(quizCreateDto, quizJob);
 
         return quizJobMapper.mapFromEntityOutbound(quizJob);
     }

@@ -36,23 +36,11 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))), })
-    @GetMapping(value = "id/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#id.toString() == principal.claims['sub'] or hasAuthority('ADMIN')")
-    public ResponseEntity<UserOutboundDto> getUserById(@PathVariable UUID id) {
+    @GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("#userId.toString() == principal.claims['sub'] or hasAuthority('ADMIN')")
+    public ResponseEntity<UserOutboundDto> getUserById(@PathVariable UUID userId) {
 
-        UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getById(id));
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Returns a user based on username")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = UserOutboundDto.class))), })
-    @GetMapping(value = "name/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("#userName == principal.claims['username'] or hasAuthority('ADMIN')")
-    public ResponseEntity<UserOutboundDto> getUserByUserName(@PathVariable String userName) {
-
-        UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getByUserName(userName));
+        UserOutboundDto userDto = userMapper.mapFromEntityOutbound(userService.getById(userId));
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
@@ -71,11 +59,11 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Successful deletion of user", content = @Content(schema = @Schema(implementation = HttpStatus.class))),
             @ApiResponse(responseCode = "400", description = "Bad request: unsuccessful submission", content = @Content(schema = @Schema(implementation = ErrorResponse.class))) })
-    @DeleteMapping(value = "/{id}")
-    @PreAuthorize("#id.toString() == principal.claims['sub'] or hasAuthority('ADMIN')")
-    public ResponseEntity<HttpStatus> deleteUser(@PathVariable UUID id) {
+    @DeleteMapping(value = "/{userId}")
+    @PreAuthorize("#userId.toString() == principal.claims['sub'] or hasAuthority('ADMIN')")
+    public ResponseEntity<HttpStatus> deleteUser(@PathVariable UUID userId) {
 
-        userService.delete(id);
+        userService.delete(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

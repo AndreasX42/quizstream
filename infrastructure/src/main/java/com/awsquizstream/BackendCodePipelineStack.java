@@ -20,6 +20,11 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.services.logs.LogGroup;
+import software.amazon.awscdk.services.logs.RetentionDays;
+import software.amazon.awscdk.services.codebuild.LoggingOptions;
+import software.amazon.awscdk.services.codebuild.CloudWatchLoggingOptions;
+import software.amazon.awscdk.RemovalPolicy;
 
 public class BackendCodePipelineStack extends Stack {
 
@@ -34,10 +39,8 @@ public class BackendCodePipelineStack extends Stack {
 
         // Import the backend ECR repositories
         String springbootEcrRepoName = CfnStackApp.getRequiredVariable("ECR_REPO_SPRINGBOOT");
-        String quizGeneratorEcrRepoName = CfnStackApp.getRequiredVariable("ECR_REPO_FASTAPI");
-        IRepository springbootRepo = Repository.fromRepositoryName(this, "SpringbootRepo", springbootEcrRepoName);
-        IRepository quizGeneratorRepo = Repository.fromRepositoryName(this, "QuizGeneratorRepo",
-                quizGeneratorEcrRepoName);
+        IRepository springbootRepo = Repository.fromRepositoryName(this, "SpringbootRepo",
+                springbootEcrRepoName);
 
         // Define the source artifact
         Artifact sourceOutput = new Artifact("SourceOutput");
@@ -66,13 +69,20 @@ public class BackendCodePipelineStack extends Stack {
                         .buildImage(LinuxBuildImage.AMAZON_LINUX_2023_5)
                         .privileged(true)
                         .build())
+                .logging(LoggingOptions.builder()
+                        .cloudWatch(CloudWatchLoggingOptions.builder()
+                                .logGroup(LogGroup.Builder
+                                        .create(this, "BackendBuildLogGroup")
+                                        .logGroupName("/aws/codebuild/BackendBuild")
+                                        .retention(RetentionDays.ONE_DAY)
+                                        .removalPolicy(RemovalPolicy.DESTROY)
+                                        .build())
+                                .build())
+                        .build())
                 .buildSpec(BuildSpec.fromSourceFilename(".aws/buildspec.yaml"))
                 .environmentVariables(Map.of(
                         "ECR_SB_REPO_NAME", BuildEnvironmentVariable.builder()
                                 .value(springbootRepo.getRepositoryUri())
-                                .build(),
-                        "ECR_QG_REPO_NAME", BuildEnvironmentVariable.builder()
-                                .value(quizGeneratorRepo.getRepositoryUri())
                                 .build(),
                         "AWS_REGION", BuildEnvironmentVariable.builder()
                                 .value(Stack.of(this).getRegion())
@@ -84,7 +94,6 @@ public class BackendCodePipelineStack extends Stack {
 
         // Grant CodeBuild project permission to push to the ECR repositories
         springbootRepo.grantPullPush(buildProject.getRole());
-        quizGeneratorRepo.grantPullPush(buildProject.getRole());
 
         // Grant CodeBuild project permission to read SSM parameters
         buildProject.getRole().addManagedPolicy(

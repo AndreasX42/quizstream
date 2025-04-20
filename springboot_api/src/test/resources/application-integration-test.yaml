@@ -17,6 +17,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/quizstream_db_test
     username: admin
     password: my_password
+    driver-class-name: org.postgresql.Driver
 
 server:
   servlet:

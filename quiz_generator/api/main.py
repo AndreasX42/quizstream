@@ -16,14 +16,6 @@ app = FastAPI(
 )
 
 
-@app.get("/health", tags=["Health"])
-async def health_check():
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"message": "Ok"},
-    )
-
-
 app.include_router(quiz_router.router)
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)

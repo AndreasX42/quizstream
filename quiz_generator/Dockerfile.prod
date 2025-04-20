@@ -12,4 +12,4 @@ COPY ./ ./quiz_generator
 
 ENV PYTHONPATH="${PYTHONPATH}:/qs_backend"
 
-CMD ["uvicorn", "quiz_generator.api:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "quiz_generator.api.main:app", "--host", "0.0.0.0", "--port", "8080"]

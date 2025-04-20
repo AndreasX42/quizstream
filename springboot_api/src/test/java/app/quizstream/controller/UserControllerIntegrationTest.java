@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Commit;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -39,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(LoomUnitExtension.class)
 @ShouldNotPin
+@ActiveProfiles("integration-test")
 public class UserControllerIntegrationTest {
 
         private final UserRepository userRepository;
@@ -129,7 +131,7 @@ public class UserControllerIntegrationTest {
         @Order(2)
         public void testGetUserById_whenValidUserIdProvided_shouldFetchCorrespondingUserFromDb() throws Exception {
 
-                String response = mockMvc.perform(MockMvcRequestBuilders.get("/users/id/{id}", testUser.getId()))
+                String response = mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", testUser.getId()))
                                 .andExpect(status().isOk())
                                 .andReturn()
                                 .getResponse()
@@ -144,25 +146,6 @@ public class UserControllerIntegrationTest {
 
         @Test
         @Order(3)
-        public void testGetUserByUsername_whenValidUsernameProvided_shouldFetchCorrespondingUserFromDb()
-                        throws Exception {
-
-                String response = mockMvc
-                                .perform(MockMvcRequestBuilders.get("/users/name/{name}", testUser.getUsername()))
-                                .andExpect(status().isOk())
-                                .andReturn()
-                                .getResponse()
-                                .getContentAsString();
-
-                UserOutboundDto fetchedUserDto = objectMapper.readValue(response, UserOutboundDto.class);
-
-                assertThat(fetchedUserDto.id()).isEqualTo(testUser.getId());
-                assertThat(fetchedUserDto.username()).isEqualTo(testUser.getUsername());
-                assertThat(fetchedUserDto.email()).isEqualTo(testUser.getEmail());
-        }
-
-        @Test
-        @Order(4)
         public void testDeleteUser_whenValidUserIdProvided_shouldDeleteEntity() throws Exception {
 
                 // get user info about quizzes created
@@ -176,11 +159,11 @@ public class UserControllerIntegrationTest {
                                 .toList();
 
                 // delete user
-                mockMvc.perform(MockMvcRequestBuilders.delete("/users/{id}", testUser.getId()))
+                mockMvc.perform(MockMvcRequestBuilders.delete("/users/{userId}", testUser.getId()))
                                 .andExpect(status().isNoContent());
 
                 // check that all user rows from all tables have been deleted
-                mockMvc.perform(MockMvcRequestBuilders.get("/users/id/{id}", testUser.getId()))
+                mockMvc.perform(MockMvcRequestBuilders.get("/users/{userId}", testUser.getId()))
                                 .andExpect(status().isNotFound());
 
                 assertThat(userQuizRepository.findByUser_Id(testUser.getId(), Pageable.ofSize(1))

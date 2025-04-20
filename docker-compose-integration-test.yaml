@@ -15,6 +15,7 @@ services:
       - BACKEND_HOST=backend-test
       - BACKEND_PORT=8080
       - DEFAULT_OPENAI_API_KEY="default key"
+      - AWS_SQS_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/quiz-generator-queue
     command: mvn test
     depends_on:
       - postgres-test

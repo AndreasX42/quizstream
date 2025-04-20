@@ -27,7 +27,11 @@ public class EnvConfigs {
         return appHost;
     }
 
-    @Value("${app.host}")
+    public String getSqsQueueUrl() {
+        return sqsQueueUrl;
+    }
+
+    @Value("${app.host:http://localhost:4200}")
     private String appHost;
 
     @Value("${backend.host:localhost}")
@@ -35,4 +39,7 @@ public class EnvConfigs {
 
     @Value("${backend.port:8080}")
     private String backendPort;
+
+    @Value("${aws.sqs.queue.url:http://localhost:4566/000000000000/default-test-queue.fifo}")
+    private String sqsQueueUrl;
 }

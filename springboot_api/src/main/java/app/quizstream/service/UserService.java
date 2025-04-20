@@ -62,13 +62,13 @@ public class UserService {
         return userMapper.mapFromEntityOutbound(userRepository.save(user));
     }
 
-    public void delete(UUID id) {
-        if (userRepository.findById(id)
+    public void delete(UUID userId) {
+        if (userRepository.findById(userId)
                 .isEmpty()) {
             return;
         }
 
-        userRepository.deleteById(id);
+        userRepository.deleteById(userId);
     }
 
 }

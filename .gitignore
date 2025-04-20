@@ -65,3 +65,5 @@ infrastructure/*.iml
 infrastructure/.cdk.staging
 infrastructure/cdk.out
 infrastructure/cdk.context.json
+infrastructure/resources/lambda/*
+infrastructure/resources/layers/*

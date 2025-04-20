@@ -8,8 +8,8 @@ import java.util.UUID;
 @Schema(description = "Dto for registration of user.")
 public record UserRegisterDto(
 
-                @NotNull UUID id,
-                @NotNull String username,
-                @NotNull @Email String email) {
+        @NotNull UUID id,
+        @NotNull String username,
+        @NotNull @Email String email) {
 
 }

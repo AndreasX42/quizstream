@@ -106,3 +106,41 @@ class UserToQuiz(Base):
     type = Column(Enum(QuizType), default=QuizType.MULTIPLE_CHOICE)
     difficulty = Column(Enum(QuizDifficulty), default=QuizDifficulty.EASY)
     date_created = Column(DateTime, default=dt.datetime.now(dt.UTC))
+
+
+# quiz_generator/api/models.py
+
+from sqlalchemy import Text, func  # Add Text and func
+
+
+class QuizRequestStatus(str, PythonEnum):
+    CREATING = "CREATING"
+    QUEUED = "QUEUED"
+    PROCESSING = "PROCESSING"
+    FINISHED = "FINISHED"
+    FAILED = "FAILED"
+
+
+class QuizRequest(Base):
+    __tablename__ = "quiz_requests"
+
+    # Composite primary key columns
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
+    quiz_name = Column(String, primary_key=True)
+
+    # Status and messaging
+    status = Column(
+        Enum(QuizRequestStatus), default=QuizRequestStatus.QUEUED, nullable=False
+    )
+    message_int = Column(Text, nullable=True)
+    message_ext = Column(String, nullable=True)
+
+    # Link to the generated quiz (nullable until completed)
+    quiz_id = Column(
+        UUID(as_uuid=True), ForeignKey("langchain_pg_collection.uuid"), nullable=True
+    )
+
+    # Timestamps
+    date_modified = Column(
+        DateTime(timezone=True), onupdate=func.now(), server_default=func.now()
+    )

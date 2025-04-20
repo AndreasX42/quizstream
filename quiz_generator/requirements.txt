@@ -1,19 +1,27 @@
+# langchain
 langchain==0.3.23 
 langchain_community==0.3.18
 langchain-openai==0.3.12 
 langchain-postgres==0.0.13 
 
+# youtube
 youtube-transcript-api==0.6.3
 pytube==15.0.0
-python-dotenv==1.1.0 
-
-
 pytubefix==8.12.3 
 
-fastapi==0.115.12 
-pydantic==2.11.2 
-uvicorn==0.34.0 
+# aws
+# boto3==1.37.36 
+aws-lambda-powertools==3.10.0 
+
+# dev
+fastapi==0.115.1 
+uvicorn==0.31.0 
 watchfiles==1.0.4 
 
+# models
+pydantic==2.11.2 
 SQLAlchemy==2.0.40 
-psycopg[binary]==3.2.6 
+psycopg[binary]==3.2.6
+
+# misc
+python-dotenv==1.1.0 

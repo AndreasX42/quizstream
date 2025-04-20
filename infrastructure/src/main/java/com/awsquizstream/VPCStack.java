@@ -15,7 +15,6 @@ import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.Port;
 import software.amazon.awscdk.services.ec2.Peer;
-import software.amazon.awscdk.services.ec2.SelectedSubnets;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +54,7 @@ public class VPCStack extends Stack {
 								.build()))
 				.build());
 
-		// *** Create a dedicated Security Group for VPC Endpoints ***
+		// create a dedicated Security Group for VPC Endpoints ***
 		SecurityGroup endpointSg = SecurityGroup.Builder.create(this, "EndpointSecurityGroup")
 				.vpc(vpc)
 				.description("SG for VPC Interface Endpoints")

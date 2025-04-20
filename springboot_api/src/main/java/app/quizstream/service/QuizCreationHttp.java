@@ -10,6 +10,7 @@ import app.quizstream.util.mapper.QuizMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,9 +24,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class QuizCreationAsyncBackendService {
+@Profile("!prod")
+public class QuizCreationHttp implements IQuizCreationInitiator {
 
-    private static final Logger logger = LoggerFactory.getLogger(QuizCreationAsyncBackendService.class);
+    private static final Logger logger = LoggerFactory.getLogger(QuizCreationHttp.class);
 
     private final RestTemplate restTemplate;
     private final EnvConfigs envConfigs;
@@ -33,7 +35,7 @@ public class QuizCreationAsyncBackendService {
     private final QuizMapper quizMapper;
     private final ObjectMapper objectMapper;
 
-    public QuizCreationAsyncBackendService(RestTemplate restTemplate, EnvConfigs envConfigs,
+    public QuizCreationHttp(RestTemplate restTemplate, EnvConfigs envConfigs,
             QuizRequestService quizJobService, QuizMapper quizMapper, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.envConfigs = envConfigs;
@@ -70,8 +72,8 @@ public class QuizCreationAsyncBackendService {
             // TODO: should quizDto be returned somehow?
             QuizCreateResultDto quizDto = quizMapper.convertToQuizOutboundDto(response.getBody());
 
-            // if quiz was created successfully mark it as finished
-            quizJob.markAsFinished(QuizRequest.Status.FINISHED, quizDto.quizId(), null, null);
+            // if quiz was created successfully update the QuizJob state
+            quizJob.updateRequestState(QuizRequest.Status.FINISHED, quizDto.quizId(), null, null);
 
         } catch (Exception e) {
 
@@ -92,9 +94,12 @@ public class QuizCreationAsyncBackendService {
                 errorExt = "Unexpected error processing request. Please try again later.";
             }
 
-            // mark QuizJob as FAILED if there is an error
-            quizJob.markAsFinished(QuizRequest.Status.FAILED, null, errorInt, errorExt);
+            // update QuizJob state to FAILED if there is an error
+            quizJob.updateRequestState(QuizRequest.Status.FAILED, null, errorInt, errorExt);
         } finally {
+            // save the updated QuizJob state
+            quizJobService.updateQuizRequest(quizJob);
+
             logger.info("{} creating quiz '{}' for user with id '{}', '{}', '{}', '{}'.",
                     quizJob.getStatus()
                             .name(),
@@ -106,8 +111,12 @@ public class QuizCreationAsyncBackendService {
                             .name());
         }
 
-        // save the updated QuizJob state
-        quizJobService.updateQuizRequest(quizJob);
+    }
+
+    @Override
+    public void initiate(QuizCreateRequestDto quizCreateDto, QuizRequest quizJob) {
+        logger.info("Initiating quiz creation via async backend call for quizJobId: {}", quizJob.getId());
+        this.createQuiz(quizCreateDto, quizJob);
     }
 
     public Optional<String[]> handleHttpClientBackendError(HttpClientErrorException e) {

@@ -20,7 +20,7 @@ import java.util.UUID;
 public class QuizRequest {
 
     public enum Status {
-        CREATING, FINISHED, FAILED
+        CREATING, PROCESSING, FINISHED, FAILED, QUEUED
     }
 
     @EmbeddedId
@@ -47,8 +47,8 @@ public class QuizRequest {
     @Column(name = "date_created", nullable = false, updatable = false)
     private LocalDateTime dateCreated = LocalDateTime.now();
 
-    @Column(name = "date_finished", nullable = true, updatable = true)
-    private LocalDateTime dateFinished;
+    @Column(name = "date_modified", nullable = true, updatable = true)
+    private LocalDateTime dateModified;
 
     @Builder.Default
     @Column(name = "message_int", nullable = true, updatable = true, columnDefinition = "TEXT")
@@ -62,12 +62,12 @@ public class QuizRequest {
     @Column(columnDefinition = "json", updatable = false)
     private RequestMetadata requestMetadata;
 
-    public void markAsFinished(Status status, UUID quizId, String messageInternal, String messageExternal) {
+    public void updateRequestState(Status status, UUID quizId, String messageInternal, String messageExternal) {
         this.status = status;
         this.quizId = quizId;
         this.messageInternal = messageInternal;
         this.messageExternal = messageExternal;
-        this.dateFinished = LocalDateTime.now();
+        this.dateModified = LocalDateTime.now();
     }
 
 }

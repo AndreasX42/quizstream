@@ -22,6 +22,7 @@ import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
 import software.amazon.awscdk.services.ssm.IStringParameter;
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.services.sqs.Queue;
 
 public class ECSFargateStack extends Stack {
 
@@ -38,6 +39,7 @@ public class ECSFargateStack extends Stack {
 			final StackProps props,
 			final IVpc vpc,
 			final String dbSecretArn,
+			final Queue queue,
 			final IApplicationListener albHttpsListener,
 			final String albFrontendDomainName,
 			final String albBackendDomainName,
@@ -160,21 +162,19 @@ public class ECSFargateStack extends Stack {
 
 		// Backend Task Definition
 		this.backendTaskDef = FargateTaskDefinition.Builder.create(this, "BackendTaskDef")
-				.memoryLimitMiB(2048)
-				.cpu(1024)
+				.memoryLimitMiB(1024)
+				.cpu(512)
 				.build();
 
 		// Get the backend ecr repos
 		String springbootEcrRepoName = CfnStackApp.getRequiredVariable("ECR_REPO_SPRINGBOOT");
-		String fastapiEcrRepoName = CfnStackApp.getRequiredVariable("ECR_REPO_FASTAPI");
 
 		IRepository springbootRepo = Repository.fromRepositoryName(this, "springboot-repo",
 				springbootEcrRepoName);
-		IRepository fastapiRepo = Repository.fromRepositoryName(this, "fastapi-repo",
-				fastapiEcrRepoName);
 
 		// grant backend task permission to read from secrets manager and ssm parameter
 		// store
+		grantEcsSqsSendMessageAccess(queue);
 		grantEcsDbSecretReadAccess(dbSecret);
 		grantEcsSSMReadAccess();
 
@@ -209,32 +209,6 @@ public class ECSFargateStack extends Stack {
 						"SPRING_JPA_HIBERNATE_DDL_AUTO", ssmSecretsMap.get("ddlAuto"),
 						"SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI", ssmSecretsMap.get("oauth2IssuerUrl"),
 						"SPRING_PROFILES_ACTIVE", ssmSecretsMap.get("profilesActive")))
-				.build());
-
-		// Explicit Log Group for FastAPI with DESTROY policy
-		LogGroup fastapiLogGroup = LogGroup.Builder.create(this, "FastapiLogGroup")
-				.removalPolicy(RemovalPolicy.DESTROY)
-				.build();
-
-		// fastapi container
-		backendTaskDef.addContainer("FastapiContainer", ContainerDefinitionOptions.builder()
-				// Use fromEcrRepository instead of fromRegistry
-				.image(ContainerImage.fromEcrRepository(fastapiRepo))
-				.portMappings(List.of(PortMapping.builder().containerPort(8080).build()))
-				.logging(LogDriver
-						.awsLogs(AwsLogDriverProps.builder()
-								.logGroup(fastapiLogGroup)
-								.streamPrefix("fastapi-").build()))
-				.secrets(Map.of(
-						// Database secrets (already using Secret.fromSecretsManager)
-						"POSTGRES_HOST", dbSecretsMap.get("host"),
-						"POSTGRES_USER", dbSecretsMap.get("username"),
-						"POSTGRES_PASSWORD", dbSecretsMap.get("password"),
-						"POSTGRES_PORT", dbSecretsMap.get("port"),
-						"POSTGRES_DATABASE", dbSecretsMap.get("dbname"),
-						// Other secrets from SSM
-						"DEFAULT_OPENAI_API_KEY", ssmSecretsMap.get("openApiKey"),
-						"PROXY_URL", ssmSecretsMap.get("proxyUrl")))
 				.build());
 
 		// Backend Fargate Service
@@ -331,8 +305,6 @@ public class ECSFargateStack extends Stack {
 				"appHost", Secret.fromSsmParameter(param("AppHostParam", "/api/APP_HOST")),
 				"ddlAuto", Secret.fromSsmParameter(param("DdlAutoParam", "/api/SPRING_JPA_HIBERNATE_DDL_AUTO")),
 				"profilesActive", Secret.fromSsmParameter(param("ProfilesActiveParam", "/api/SPRING_PROFILES_ACTIVE")),
-				"openApiKey", Secret.fromSsmParameter(param("OpenApiKeyParam", "/qg/DEFAULT_OPENAI_API_KEY")),
-				"proxyUrl", Secret.fromSsmParameter(param("ProxyUrlParam", "/qg/PROXY_URL")),
 				"oauth2IssuerUrl", Secret.fromSsmParameter(
 						param("Oauth2IssuerUrlParam", "/cognito/COGNITO_USER_POOL_ISSUER_URL")));
 	}
@@ -347,6 +319,12 @@ public class ECSFargateStack extends Stack {
 		if (this.backendTaskDef != null && this.backendTaskDef.getExecutionRole() != null) {
 			this.backendTaskDef.getExecutionRole().addManagedPolicy(
 					ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMReadOnlyAccess"));
+		}
+	}
+
+	public void grantEcsSqsSendMessageAccess(Queue queue) {
+		if (this.backendTaskDef != null && this.backendTaskDef.getExecutionRole() != null) {
+			queue.grantSendMessages(this.backendTaskDef.getExecutionRole());
 		}
 	}
 

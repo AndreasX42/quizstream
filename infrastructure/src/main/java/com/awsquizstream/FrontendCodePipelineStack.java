@@ -15,15 +15,20 @@ import software.amazon.awscdk.services.ecs.IBaseService;
 import software.constructs.Construct;
 import software.amazon.awscdk.services.codepipeline.actions.CodeStarConnectionsSourceAction;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.logs.LogGroup;
+import software.amazon.awscdk.services.logs.RetentionDays;
+import software.amazon.awscdk.services.codebuild.LoggingOptions;
+import software.amazon.awscdk.services.codebuild.CloudWatchLoggingOptions;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.RemovalPolicy;
 
-public class AngularCodePipelineStack extends Stack {
+public class FrontendCodePipelineStack extends Stack {
 
-	public AngularCodePipelineStack(
+	public FrontendCodePipelineStack(
 			final Construct scope,
 			final String id,
 			final StackProps props,
@@ -57,11 +62,20 @@ public class AngularCodePipelineStack extends Stack {
 		// --- Build Stage ---
 
 		// Define the CodeBuild project
-		PipelineProject buildProject = PipelineProject.Builder.create(this, "AngularBuildProject")
-				.projectName("AngularFrontendBuild")
+		PipelineProject buildProject = PipelineProject.Builder.create(this, "FrontendBuildProject")
+				.projectName("FrontendBuild")
 				.environment(BuildEnvironment.builder()
 						.buildImage(LinuxBuildImage.AMAZON_LINUX_2023_5)
 						.privileged(true)
+						.build())
+				.logging(LoggingOptions.builder()
+						.cloudWatch(CloudWatchLoggingOptions.builder()
+								.logGroup(LogGroup.Builder.create(this, "FrontendBuildLogGroup")
+										.logGroupName("/aws/codebuild/FrontendBuild")
+										.retention(RetentionDays.ONE_DAY)
+										.removalPolicy(RemovalPolicy.DESTROY)
+										.build())
+								.build())
 						.build())
 				.buildSpec(BuildSpec.fromSourceFilename(".aws/buildspec.yaml"))
 				.environmentVariables(Map.of(
@@ -111,8 +125,8 @@ public class AngularCodePipelineStack extends Stack {
 				.build();
 
 		// --- Pipeline Definition ---
-		Pipeline.Builder.create(this, "AngularFrontendPipeline")
-				.pipelineName("AngularFrontendPipeline")
+		Pipeline.Builder.create(this, "FrontendPipeline")
+				.pipelineName("FrontendPipeline")
 				.stages(Arrays.asList(
 						StageProps.builder()
 								.stageName("Source")
