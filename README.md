@@ -11,7 +11,7 @@
 `LLM Frameworks` [LangChain](https://www.langchain.com/) [OpenAI](https://www.openai.com/) \
 `API Frameworks` [Spring Boot 3](https://spring.io/projects/spring-boot) [FastAPI](https://fastapi.tiangolo.com/)\
 `DBs` [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/) [PGVector](https://github.com/pgvector/pgvector)\
-`CI/CD` [AWS CodePipeline](https://aws.amazon.com/codepipeline/) [AWS CodeBuild](https://aws.amazon.com/codebuild/) 
+`CI/CD` [AWS CodePipeline](https://aws.amazon.com/codepipeline/) [AWS CodeBuild](https://aws.amazon.com/codebuild/) [AWS CDK](https://aws.amazon.com/cdk/)
 
 ## 🌐 Architecture
 
