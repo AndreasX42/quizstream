@@ -7,7 +7,7 @@
 ## 📖 Stack
 
 `Frontend` [Angular 18](https://angular.dev/) - ([GitHub Repo](https://github.com/AndreasX42/quizstream-angular)) \
-`Backend` [Java 21](https://openjdk.org/) [Python](https://www.python.org/)\
+`Backend` [Java 21](https://openjdk.org/) [Python](https://www.python.org/) [AWS Lambda](https://aws.amazon.com/lambda/) \
 `LLM Frameworks` [LangChain](https://www.langchain.com/) [OpenAI](https://www.openai.com/) \
 `API Frameworks` [Spring Boot 3](https://spring.io/projects/spring-boot) [FastAPI](https://fastapi.tiangolo.com/)\
 `DBs` [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/) [PGVector](https://github.com/pgvector/pgvector)\
@@ -17,7 +17,7 @@
 
 The app is built on AWS with the following architecture:
 
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/b8622da3-b621-4919-9ee4-7e78ab97a482" />
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/925c84e9-0f72-4d25-a166-de8ded1f8a5f" />
 
 
 ## 🌟 Features
