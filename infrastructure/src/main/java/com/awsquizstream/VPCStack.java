@@ -135,5 +135,13 @@ public class VPCStack extends Stack {
 				.subnets(privateSubnetSelection)
 				.securityGroups(List.of(endpointSg)) // Use shared SG
 				.build());
+
+		// Add SQS Interface Endpoint
+		vpc.addInterfaceEndpoint("SqsEndpoint", InterfaceVpcEndpointOptions.builder()
+				.service(InterfaceVpcEndpointAwsService.SQS)
+				.privateDnsEnabled(true)
+				.subnets(privateSubnetSelection)
+				.securityGroups(List.of(endpointSg))
+				.build());
 	}
 }

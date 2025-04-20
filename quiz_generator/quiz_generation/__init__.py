@@ -2,7 +2,6 @@ from quiz_generator.quiz_generation.generator import agenerate_quiz
 
 # TODO: Workaround for pytube issue, langchain-community==0.3.18 uses pytube to fetch additional video info, but the module is not maintained anymore, and we need langchain to use a proxy for youtube requests
 import sys
-import requests
 from youtube_transcript_api import YouTubeTranscriptApi
 import os
 from pytubefix import YouTube as FixedYouTube

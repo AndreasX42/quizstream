@@ -153,7 +153,7 @@ public class ECSFargateStack extends Stack {
 				Port.tcp(9090),
 				"Allow http inbound from ALB");
 
-		// *** Look up RDS SG by ID and add ingress rule ***
+		// look up RDS SG by ID and add ingress rule
 		ISecurityGroup rdsSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedRdsSg", rdsSecurityGroupId);
 		rdsSecurityGroup.addIngressRule(
 				backendSg,
@@ -192,11 +192,13 @@ public class ECSFargateStack extends Stack {
 								.streamPrefix("springboot-").build()))
 				.healthCheck(software.amazon.awscdk.services.ecs.HealthCheck.builder()
 						.command(List.of("CMD-SHELL", "curl -f http://localhost:9090/health || exit 1"))
-						.interval(Duration.seconds(17))
+						.interval(Duration.seconds(11))
 						.timeout(Duration.seconds(2))
 						.retries(3)
-						.startPeriod(Duration.seconds(15))
+						.startPeriod(Duration.seconds(60))
 						.build())
+				.environment(Map.of(
+						"AWS_SQS_QUEUE_URL", queue.getQueueUrl()))
 				.secrets(Map.of(
 						// From fromSecrets Manager
 						"SPRING_DATASOURCE_HOST", dbSecretsMap.get("host"),
@@ -218,7 +220,7 @@ public class ECSFargateStack extends Stack {
 				.desiredCount(1)
 				.assignPublicIp(false)
 				.securityGroups(List.of(backendSg))
-				.healthCheckGracePeriod(Duration.seconds(30))
+				.healthCheckGracePeriod(Duration.seconds(60))
 				.vpcSubnets(SubnetSelection.builder()
 						.subnetType(SubnetType.PRIVATE_WITH_EGRESS)
 						.build())
@@ -323,8 +325,9 @@ public class ECSFargateStack extends Stack {
 	}
 
 	public void grantEcsSqsSendMessageAccess(Queue queue) {
-		if (this.backendTaskDef != null && this.backendTaskDef.getExecutionRole() != null) {
-			queue.grantSendMessages(this.backendTaskDef.getExecutionRole());
+		// Grant permission to the Task Role, which the container assumes at runtime
+		if (this.backendTaskDef != null && this.backendTaskDef.getTaskRole() != null) {
+			queue.grantSendMessages(this.backendTaskDef.getTaskRole());
 		}
 	}
 

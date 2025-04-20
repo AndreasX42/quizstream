@@ -9,9 +9,9 @@ try:
     secrets_provider = SecretsProvider()
 
     # Fetch the secret
-    secret_name: str = os.environ.get("DB_SECRET_NAME", "DbSecret")
+    secret_arn: str = os.environ.get("DB_SECRET_ARN", "DbSecret")
 
-    secret = secrets_provider.get(secret_name, transform="json")
+    secret = secrets_provider.get(secret_arn, transform="json")
     USER = secret["username"]
     PWD = secret["password"]
     HOST = secret["host"]

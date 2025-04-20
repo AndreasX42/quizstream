@@ -104,10 +104,10 @@ async def create_quiz_lambda(quiz_data: QuizCreateRequestDto, session: Session) 
     qa_ids = []
     try:
         collection_id, qa_ids = await agenerate_quiz(
-            quiz_name=quiz_request.quiz_name,
-            youtube_url=quiz_request.video_url,
-            language=quiz_request.language,
-            difficulty=quiz_request.difficulty,
+            quiz_name=quiz_data.quiz_name,
+            youtube_url=str(quiz_data.youtube_url),
+            language=quiz_data.language,
+            difficulty=quiz_data.difficulty,
             api_keys=quiz_data.api_keys,
         )
         logger.info(
@@ -123,9 +123,9 @@ async def create_quiz_lambda(quiz_data: QuizCreateRequestDto, session: Session) 
             user_id=quiz_data.user_id,
             quiz_id=collection_id,
             num_questions=len(qa_ids),
-            language=quiz_request.language,
-            type=quiz_request.type,
-            difficulty=quiz_request.difficulty,
+            language=quiz_data.language,
+            type=quiz_data.type,
+            difficulty=quiz_data.difficulty,
         )
         session.add(user_to_quiz)
         logger.info(
@@ -150,7 +150,6 @@ async def create_quiz_lambda(quiz_data: QuizCreateRequestDto, session: Session) 
             quiz_request.message_ext = "Quiz generation failed"
 
         quiz_request.quiz_id = None
-        quiz_request.num_questions = None
         raise http_exc
 
     except Exception as e:
@@ -162,7 +161,6 @@ async def create_quiz_lambda(quiz_data: QuizCreateRequestDto, session: Session) 
         quiz_request.message_int = f"Unexpected Error: {type(e).__name__}: {str(e)}"
         quiz_request.message_ext = "Quiz generation failed due to an unexpected error"
         quiz_request.quiz_id = None
-        quiz_request.num_questions = None
         raise e
 
     finally:

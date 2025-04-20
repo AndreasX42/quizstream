@@ -38,7 +38,9 @@ public class QuizstreamStack extends Stack {
 
 		// create SQS queue and lambda function
 		SqsLambdaStack sqsLambdaStack = new SqsLambdaStack(this, "SqsLambdaStack", nestedStackProps,
-				rdsStack.getDbSecretArn());
+				vpcStack.getVpc(),
+				rdsStack.getDbSecretArn(),
+				rdsStack.getRdsSecurityGroup().getSecurityGroupId());
 
 		// // create ECS Fargate cluster and services
 		ECSFargateStack ecsFargateStack = new ECSFargateStack(this, "EcsFargate",

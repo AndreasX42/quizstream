@@ -14,28 +14,42 @@ import java.util.Map;
 import software.amazon.awscdk.services.secretsmanager.ISecret;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.ec2.IVpc;
+import software.amazon.awscdk.services.ec2.SecurityGroup;
+import software.amazon.awscdk.services.ec2.SubnetSelection;
+import software.amazon.awscdk.services.ec2.SubnetType;
+import software.amazon.awscdk.services.ec2.ISecurityGroup;
+import software.amazon.awscdk.services.ec2.Port;
+import software.amazon.awscdk.services.ssm.StringParameter;
 
 public class SqsLambdaStack extends Stack {
 
     private final Queue queue;
+    private final SecurityGroup lambdaSecurityGroup;
 
     public Queue getQueue() {
         return queue;
     }
 
+    public SecurityGroup getLambdaSecurityGroup() {
+        return lambdaSecurityGroup;
+    }
+
     public ISecret getImportedSecret(String dbSecretArn) {
         return software.amazon.awscdk.services.secretsmanager.Secret.fromSecretCompleteArn(this,
-                "ImportedDbSecret", dbSecretArn);
+                "ImportedDbSecretForLambda", dbSecretArn);
     }
 
     public SqsLambdaStack(final Construct scope, final String id, final StackProps props,
-            final String dbSecretArn) {
+            final IVpc vpc,
+            final String dbSecretArn,
+            final String rdsSecurityGroupId) {
         super(scope, id, props);
 
         // define the queue
         this.queue = Queue.Builder.create(this, "QuizJobsQueue")
                 .queueName("quiz-jobs-queue.fifo")
-                .visibilityTimeout(Duration.seconds(300))
+                .visibilityTimeout(Duration.seconds(150))
                 .fifo(true)
                 .build();
 
@@ -46,17 +60,43 @@ public class SqsLambdaStack extends Stack {
                 .code(Code.fromAsset("resources/layers/quiz_requirements_layer.zip"))
                 .build();
 
+        // Create a Security Group for the Lambda function
+        this.lambdaSecurityGroup = SecurityGroup.Builder.create(this, "LambdaSg")
+                .vpc(vpc)
+                .description("Security group for Generator Lambda")
+                .allowAllOutbound(true)
+                .build();
+
+        // look up RDS SG by ID and add ingress rule
+        ISecurityGroup rdsSecurityGroup = SecurityGroup.fromSecurityGroupId(this, "ImportedRdsSg",
+                rdsSecurityGroupId);
+
+        rdsSecurityGroup.addIngressRule(
+                lambdaSecurityGroup,
+                Port.tcp(5432),
+                "Allow inbound from Lambda");
+
+        // Retrieve SSM parameter values at deployment time
+        String proxyUrl = StringParameter.valueForStringParameter(this, "/qg/PROXY_URL");
+        String openaiApiKey = StringParameter.valueForStringParameter(this, "/qg/DEFAULT_OPENAI_API_KEY");
+
         // define the Lambda Function
         Function fn = Function.Builder.create(this, "QuizSqsLambda")
                 .runtime(Runtime.PYTHON_3_11)
                 .handler("quiz_generator.lambda_function.lambda_handler")
                 .code(Code.fromAsset("resources/lambda/quiz_generator_zip.zip"))
                 .memorySize(256)
-                .timeout(Duration.seconds(180))
+                .timeout(Duration.seconds(120))
                 .layers(List.of(layer))
                 .environment(Map.of(
-                        "QUEUE_URL", queue.getQueueUrl(),
-                        "DB_SECRET_ARN", dbSecretArn))
+                        "DB_SECRET_ARN", dbSecretArn,
+                        "PROXY_URL", proxyUrl,
+                        "DEFAULT_OPENAI_API_KEY", openaiApiKey))
+                .vpc(vpc)
+                .vpcSubnets(SubnetSelection.builder()
+                        .subnetType(SubnetType.PRIVATE_WITH_EGRESS)
+                        .build())
+                .securityGroups(List.of(this.lambdaSecurityGroup))
                 .build();
 
         // Grant sqs permissions

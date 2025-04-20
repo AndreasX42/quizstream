@@ -5,15 +5,13 @@ from asyncio import TimeoutError
 
 from aws_lambda_powertools import Logger, Metrics
 from aws_lambda_powertools.metrics import MetricUnit
-from aws_lambda_powertools.utilities.parser import parse, envelopes
+from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.batch import (
     process_partial_response,
     BatchProcessor,
     EventType,
 )
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from aws_lambda_powertools.utilities import parameters
-
 from quiz_generator.commons.db.database import SessionLocal
 from quiz_generator.api.services import quiz_service
 from quiz_generator.api.schemas import QuizCreateRequestDto
@@ -23,16 +21,6 @@ metrics = Metrics(namespace="QuizService")
 
 # Instantiate BatchProcessor globally for SQS events
 processor = BatchProcessor(event_type=EventType.SQS)
-
-# Fetch parameters from SSM Parameter Store
-try:
-    ssm_params = parameters.get_parameters("/qg", transform="auto", max_age=180)
-    os.environ["PROXY_URL"] = ssm_params.get("PROXY_URL")
-    os.environ["DEFAULT_OPENAI_API_KEY"] = ssm_params.get("DEFAULT_OPENAI_API_KEY")
-    logger.info("Successfully loaded parameters from SSM Parameter Store.")
-except Exception as e:
-    logger.exception(f"Failed to load parameters from SSM: {e}")
-    raise
 
 
 @logger.inject_lambda_context()
@@ -45,7 +33,7 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
 def process_record(record: Dict[str, Any]):
     try:
         quiz_data: QuizCreateRequestDto = parse(
-            event=record, model=QuizCreateRequestDto, envelope=envelopes.SQSEnvelope
+            event=record["body"], model=QuizCreateRequestDto
         )
 
         logger.info(f"Quiz data: {quiz_data}")
@@ -54,7 +42,7 @@ def process_record(record: Dict[str, Any]):
         logger.info("Processing quiz creation from SQS")
 
         with SessionLocal() as db:
-            timeout_seconds = 180
+            timeout_seconds = 120
             try:
 
                 async def run_create_with_timeout():

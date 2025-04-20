@@ -14,7 +14,7 @@ public record QuizRequestDto(
         @NotNull QuizRequest.Status status,
         @NotNull LocalDateTime dateCreated,
         @Nullable UUID quizId,
-        @Nullable LocalDateTime dateFinished,
+        @Nullable LocalDateTime dateModified,
         @Nullable String errorMessage,
         @NotNull QuizRequestMetadataDto metadata) {
 

@@ -40,6 +40,6 @@ public class EnvConfigs {
     @Value("${backend.port:8080}")
     private String backendPort;
 
-    @Value("${aws.sqs.queue.url:http://localhost:4566/000000000000/default-test-queue.fifo}")
+    @Value("${aws.sqs.queue.url}")
     private String sqsQueueUrl;
 }
